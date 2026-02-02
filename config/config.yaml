@@ -1,0 +1,673 @@
+# NovelFlow 叙谱 - AI小说创作系统配置文件
+# 所有提示词和LLM配置均在此文件中管理
+
+llm:
+  # 默认LLM提供商
+  default_provider: "glm"
+
+  # LLM提供商配置
+  providers:
+    glm:
+      base_url: "https://open.bigmodel.cn/api/coding/paas/v4"
+      api_key: "47fceefc4ec144aa8f716ef975ff6fc8.QdAAHzazJVsQKEhC"
+      api_key_env: "GLM_API_KEY"  # 备用：从环境变量读取
+      models:
+        default: "glm-4.7"
+        available:
+          - name: "glm-4.7"
+            max_tokens: 128000
+
+  # 模块与模型的映射
+  module_mapping:
+    world_builder:
+      provider: "glm"
+      model: "glm-4.7"
+      temperature: 1.0
+      max_tokens: 128000
+    narrative_engine:
+      provider: "glm"
+      model: "glm-4.7"
+      temperature: 1.0
+      max_tokens: 128000
+    writer_dialogue:
+      provider: "glm"
+      model: "glm-4.7"
+      temperature: 1.0
+      max_tokens: 128000
+    writer_scene:
+      provider: "glm"
+      model: "glm-4.7"
+      temperature: 1.0
+      max_tokens: 128000
+    writer_description:
+      provider: "glm"
+      model: "glm-4.7"
+      temperature: 1.0
+      max_tokens: 128000
+
+# ============================================
+# 提示词模板管理
+# 所有提示词集中管理，不得硬编码
+# ============================================
+
+prompts:
+  # ============================================
+  # 世界设定器提示词
+  # ============================================
+  world_builder:
+    # 系统提示词
+    system: |
+      你是一位资深的虚构世界构建专家，精通哲学、历史、政治学和社会学。
+      你擅长创造有机、自洽、能够产生精彩故事的世界设定。
+      你的设定总是遵循因果链原则，一切皆有因，历史事件能追溯到社会矛盾。
+
+    # 阶段1: 生成哲学基础
+    stage1_philosophy: |
+      基于以下参数生成世界的【哲学基础】：
+
+      世界类型：{{.WorldType}}
+      核心主题：{{.Theme}}
+      风格倾向：{{.Style}}
+
+      请生成以下内容并以JSON格式返回：
+      {
+        "core_question": "这个世界要探讨的根本问题是什么？",
+        "derivation": "为什么提出这个问题的理由",
+        "value_system": {
+          "highest_good": "这个世界认为什么是'善'？",
+          "ultimate_evil": "这个世界认为什么是'恶'？",
+          "moral_dilemmas": [
+            {
+              "dilemma": "道德困境名称",
+              "description": "详细描述"
+            }
+          ]
+        },
+        "themes": [
+          {
+            "name": "主题名称",
+            "exploration_angle": "从什么角度探讨这个主题"
+          }
+        ]
+      }
+      只返回JSON，不要包含其他内容。
+
+    # 阶段2: 生成世界观
+    stage2_worldview: |
+      基于以下【哲学基础】生成【世界观】：
+
+      哲学基础：
+      核心问题：{{.CoreQuestion}}
+      价值观：善={{.HighestGood}}，恶={{.UltimateEvil}}
+
+      请生成以下内容并以JSON格式返回：
+      {
+        "derivation_logic": "说明如何从哲学推导出世界观",
+        "cosmology": {
+          "origin": "世界如何起源？",
+          "structure": "世界的结构是怎样的？",
+          "eschatology": "世界的终极命运是什么？"
+        },
+        "metaphysics": {
+          "soul_exists": true/false,
+          "soul_nature": "灵魂的本质是什么？",
+          "afterlife": "死后的世界是怎样的？",
+          "fate_exists": true/false,
+          "fate_relationship": "命运与自由意志的关系是什么？"
+        }
+      }
+      只返回JSON，不要包含其他内容。
+
+    # 阶段3: 生成法则设定
+    stage3_laws: |
+      基于以下信息生成【法则设定】：
+
+      世界类型：{{.WorldType}}
+      世界观：{{.Worldview}}
+
+      请生成以下内容并以JSON格式返回：
+      {
+        "physics": {
+          "gravity": "重力规则",
+          "time_flow": "时间流逝方式",
+          "energy_conservation": "能量是否守恒",
+          "causality": "因果关系如何运作",
+          "death_nature": "死亡的性质"
+        },
+        "supernatural": {
+          "exists": true/false,
+          "type": "magic/cultivation/superpower",
+          "source": "力量来源",
+          "cost": "使用代价",
+          "limitation": ["限制1", "限制2"]
+        }
+      }
+      如果没有超自然体系，supernatural.exists设为false，其他字段留空。
+      只返回JSON，不要包含其他内容。
+
+    # 阶段4: 生成故事土壤
+    stage4_story_soil: |
+      基于以下世界设定生成【故事土壤】：
+
+      哲学核心：{{.CoreQuestion}}
+      主要矛盾：{{.MainConflicts}}
+      世界类型：{{.WorldType}}
+
+      请生成以下内容并以JSON格式返回：
+      {
+        "social_conflicts": [
+          {
+            "type": "经济/政治/社会/文化矛盾",
+            "description": "详细描述",
+            "parties": ["甲方", "乙方", "丙方"],
+            "tension": 85,
+            "triggers": ["触发条件1", "触发条件2"]
+          }
+        ],
+        "power_structures": [
+          {
+            "name": "权力结构名称",
+            "formal_power": "明面上的权力",
+            "actual_power": [
+              {
+                "entity": "实际掌权者",
+                "power_source": "权力来源",
+                "relationship": "与名义权力的关系"
+              }
+            ]
+          }
+        ],
+        "historical_context": {
+          "recent_events": [
+            {
+              "event": "近期重大事件",
+              "impact": "对当前的影响",
+              "years_ago": 10
+            }
+          ],
+          "collective_memory": "集体记忆/历史创伤",
+          "unresolved_issues": ["未解决的历史问题"]
+        },
+        "potential_plot_hooks": [
+          {
+            "type": "权力真空/冲突爆发/秘密揭露",
+            "description": "详细描述",
+            "story_potential": "故事潜力说明",
+            "triggers": ["可能触发的事件"]
+          }
+        ],
+        "cultural_details": {
+          "customs": ["习俗1", "习俗2"],
+          "taboos": ["禁忌1", "禁忌2"],
+          "slang": ["俚语", "暗语"],
+          "holidays": ["节日"]
+        }
+      }
+      只返回JSON，不要包含其他内容。
+
+    # 阶段5: 生成地理环境
+    stage5_geography: |
+      基于以下世界设定生成【地理环境】：
+
+      世界类型：{{.WorldType}}
+      世界规模：{{.WorldScale}}
+      已有设定：
+      - 法则：{{.LawsSummary}}
+      - 文明需求：{{.CivilizationNeeds}}
+
+      请生成以下内容并以JSON格式返回：
+      {
+        "geography": {
+          "regions": [
+            {
+              "id": "region_001",
+              "name": "区域名称",
+              "type": "mountain/plain/river/ocean/forest/desert",
+              "description": "详细描述",
+              "resources": ["资源1", "资源2"],
+              "risks": ["风险1", "风险2"]
+            }
+          ],
+          "resources": {
+            "basic": ["基础资源"],
+            "strategic": ["战略资源"],
+            "rare": ["稀有资源"]
+          },
+          "climate": {
+            "type": "气候类型",
+            "seasons": true/false,
+            "features": ["特征1", "特征2"]
+          }
+        }
+      }
+      只返回JSON，不要包含其他内容。
+
+    # 阶段6: 生成文明社会
+    stage6_civilization: |
+      基于以下世界设定生成【文明社会】：
+
+      世界类型：{{.WorldType}}
+      地理环境：{{.GeographySummary}}
+      哲学价值观：{{.ValueSystem}}
+
+      请生成以下内容并以JSON格式返回：
+      {
+        "civilization": {
+          "races": [
+            {
+              "id": "race_001",
+              "name": "种族名称",
+              "description": "种族描述",
+              "traits": ["特征1", "特征2"],
+              "abilities": ["能力1", "能力2"],
+              "relations": {
+                "其他种族": "关系描述"
+              }
+            }
+          ],
+          "languages": [
+            {
+              "id": "lang_001",
+              "name": "语言名称",
+              "type": "natural/artificial/divine/ancient",
+              "speakers": "使用者",
+              "features": ["特征1", "特征2"]
+            }
+          ],
+          "religions": [
+            {
+              "id": "religion_001",
+              "name": "宗教名称",
+              "type": "类型",
+              "cosmology": "宇宙观",
+              "ethics": ["伦理1", "伦理2"],
+              "practices": ["实践1", "实践2"]
+            }
+          ]
+        },
+        "society": {
+          "politics": {
+            "type": "monarchy/republic/theocracy/military/tribal",
+            "legitimacy_source": "权力合法性来源",
+            "power_structure": {
+              "formal": [
+                {
+                  "level": "层级",
+                  "name": "名称",
+                  "powers": ["权力1", "权力2"]
+                }
+              ],
+              "actual": [
+                {
+                  "entity": "实体",
+                  "power_source": "权力来源",
+                  "relationship": "与名义权力的关系"
+                }
+              ]
+            }
+          },
+          "classes": [
+            {
+              "name": "阶级名称",
+              "rank": 85,
+              "rights": ["权利1", "权利2"],
+              "obligations": ["义务1", "义务2"]
+            }
+          ],
+          "economy": {
+            "type": "natural/commodity/capitalist/planned",
+            "trade_network": "贸易网络描述",
+            "currency": ["货币1", "货币2"]
+          },
+          "laws": [
+            {
+              "name": "法律名称",
+              "type": "类型",
+              "description": "描述",
+              "penalty": "惩罚"
+            }
+          ],
+          "conflicts": [
+            {
+              "type": "economic/political/social/cultural",
+              "description": "描述",
+              "parties": ["甲方", "乙方"],
+              "tension": 75,
+              "triggers": ["触发条件"]
+            }
+          ]
+        },
+        "history": {
+          "origin": "起源描述",
+          "eras": [
+            {
+              "name": "时代名称",
+              "period": "起止时间",
+              "type": "origin/expansion/peak/decline",
+              "description": "描述"
+            }
+          ],
+          "events": [
+            {
+              "id": "event_001",
+              "name": "事件名称",
+              "time": "时间",
+              "description": "描述",
+              "causes": ["原因1", "原因2"],
+              "consequences": ["后果1", "后果2"],
+              "impact": "影响描述"
+            }
+          ],
+          "traumas": ["集体创伤1", "集体创伤2"],
+          "legacies": ["历史遗产1", "历史遗产2"]
+        }
+      }
+      只返回JSON，不要包含其他内容。
+
+    # 阶段7: 一致性检查与完善
+    stage7_consistency: |
+      检查以下世界设定的一致性，并输出检查结果：
+
+      {{.WorldSettingSummary}}
+
+      请以JSON格式返回：
+      {
+        "consistency_check": {
+          "overall_score": 85,
+          "issues": [
+            {
+              "aspect": "哲学/世界观/法则/地理/文明/历史",
+              "issue": "问题描述",
+              "severity": "low/medium/high",
+              "suggestion": "修复建议"
+            }
+          ],
+          "strengths": ["优点1", "优点2"],
+          "improvements": ["改进建议1", "改进建议2"],
+          "story_potential": {
+            "score": 90,
+            "high_potential_elements": ["高潜力元素1", "高潜力元素2"],
+            "underutilized_elements": ["未充分利用元素1"]
+          }
+        }
+      }
+      只返回JSON，不要包含其他内容。
+
+  # ============================================
+  # 叙事器提示词
+  # ============================================
+  narrative_engine:
+    system: |
+      你是一位专业的故事策划师，精通各种叙事理论。
+      你擅长将世界设定转化为引人入胜的故事大纲。
+      你的规划总是遵循因果链原则，每个情节节点都有明确的因果关系。
+
+    # 生成故事大纲
+    generate_outline: |
+      基于以下信息生成【三幕剧结构】故事大纲：
+
+      世界设定摘要：
+      {{.WorldSummary}}
+
+      创作意图：
+      - 故事类型：{{.StoryType}}
+      - 核心主题：{{.Theme}}
+      - 主角概念：{{.Protagonist}}
+      - 篇幅预期：{{.Length}}
+
+      请以JSON格式返回：
+      {
+        "structure_type": "three_act",
+        "three_act": {
+          "act1": {
+            "setup": "世界建立：介绍什么？",
+            "inciting_incident": "激励事件：什么打破平衡？",
+            "plot_point1": "第一幕情节点：主角如何踏上旅程？"
+          },
+          "act2": {
+            "rising_action": ["试炼1", "试炼2", "试炼3"],
+            "midpoint": "中点转折：重大变化是什么？",
+            "all_is_lost": "一无所有：最低点是什么？",
+            "plot_point2": "第二幕情节点：如何进入最终对抗？"
+          },
+          "act3": {
+            "climax": "高潮：最终对抗如何展开？",
+            "resolution": "结局：主角变化了什么？世界变成怎样？"
+          }
+        }
+      }
+      只返回JSON，不要包含其他内容。
+
+    # 生成章节规划
+    generate_chapter_plans: |
+      基于以下大纲生成【章节规划】：
+
+      大纲：
+      {{.Outline}}
+
+      请规划{{.ChapterCount}}章内容，每章以JSON格式返回：
+      {
+        "chapters": [
+          {
+            "chapter": 1,
+            "title": "章节标题",
+            "purpose": "本章目的",
+            "key_scenes": ["场景1", "场景2"],
+            "plot_advancement": "推进了什么情节",
+            "arc_progress": "角色弧光进展",
+            "ending_hook": "结尾悬念",
+            "estimated_words": 3000
+          }
+        ]
+      }
+      只返回JSON，不要包含其他内容。
+
+    # 生成场景序列
+    generate_scenes: |
+      为第{{.Chapter}}章生成场景序列：
+
+      章节目的：{{.ChapterPurpose}}
+      已发生情节：{{.PreviousSummary}}
+      角色状态：{{.CharacterStates}}
+
+      请以JSON格式返回场景列表：
+      {
+        "scenes": [
+          {
+            "sequence": 1,
+            "purpose": "场景目的",
+            "location": "地点",
+            "characters": ["角色A", "角色B"],
+            "action": "发生什么",
+            "dialogue_focus": "对话重点",
+            "mood": "氛围",
+            "expected_length": 800
+          }
+        ]
+      }
+      只返回JSON，不要包含其他内容。
+
+    # 规划角色弧光
+    plan_character_arc: |
+      为角色规划【成长弧光】：
+
+      角色基础信息：{{.CharacterInfo}}
+      故事主题：{{.Theme}}
+      故事类型：{{.StoryType}}
+
+      请以JSON格式返回：
+      {
+        "arc_type": "growth/negative/flat",
+        "start_state": {
+          "personality": ["起始性格特征"],
+          "motivation": "起始动机",
+          "emotion": "起始情绪状态"
+        },
+        "end_state": {
+          "personality": ["目标性格特征"],
+          "motivation": "目标动机",
+          "emotion": "目标情绪状态"
+        },
+        "turning_points": [
+          {
+            "chapter": 3,
+            "event": "关键事件",
+            "change": "发生什么变化"
+          }
+        ]
+      }
+      只返回JSON，不要包含其他内容。
+
+  # ============================================
+  # 写作器提示词
+  # ============================================
+  writer:
+    system: |
+      你是一位专业的小说作家，擅长场景描写、对话创作和人物刻画。
+      你严格遵循"展示而非讲述"的原则，通过行动和对话来展现故事。
+      你的描写生动具体，能够调动读者的感官体验。
+
+    # 生成对话
+    generate_dialogue: |
+      生成角色对话：
+
+      发言者信息：
+      {{.SpeakerProfile}}
+
+      听话者信息：
+      {{.ListenerProfile}}
+
+      关系状态：
+      {{.Relationship}}
+
+      对话目的：{{.Purpose}}
+      当前情绪：{{.Emotion}}
+      当前情境：{{.Context}}
+
+      请以JSON格式返回：
+      {
+        "dialogue": "对话内容",
+        "action": "说话时的动作/表情",
+        "tone": "语气",
+        "subtext": "潜台词（可选）"
+      }
+      只返回JSON，不要包含其他内容。
+
+    # 生成场景描写
+    generate_scene: |
+      生成场景描写：
+
+      场景信息：
+      - 地点：{{.Location}}
+      - 时间：{{.Time}}
+      - 天气：{{.Weather}}
+      - 在场角色：{{.Characters}}
+
+      场景目的：{{.Purpose}}
+      氛围要求：{{.Mood}}
+
+      世界设定参考：
+      {{.WorldReference}}
+
+      要求：
+      1. 使用第三人称限制视角，视角角色是{{.POVCharacter}}
+      2. 展示而非讲述，通过具体细节展现
+      3. 调动读者的感官体验（视觉、听觉、触觉等）
+      4. 对话符合角色性格和关系状态
+      5. 字数约{{.WordCount}}字
+
+      请直接返回场景文本，不要包含任何解释。
+
+    # 生成动作描写
+    generate_action: |
+      生成动作描写：
+
+      角色：{{.Character}}
+      性格：{{.Personality}}
+      当前状态：{{.CurrentState}}
+      要执行的动作：{{.Action}}
+
+      要求：通过具体动作展现角色性格，避免抽象描述。
+      请直接返回动作描写文本。
+
+    # 生成环境描写
+    generate_environment: |
+      生成环境描写：
+
+      地点：{{.Location}}
+      类型：{{.Type}} (宫殿/集市/森林/战场等)
+      氛围：{{.Mood}}
+
+      要求：调动五感，生动具体，约{{.WordCount}}字。
+      请直接返回环境描写文本。
+
+    # 生成心理描写
+    generate_internal_monologue: |
+      生成内心独白：
+
+      角色：{{.Character}}
+      当前处境：{{.Situation}}
+      内在冲突：{{.InnerConflict}}
+
+      要求：展现角色内心挣扎，使用意识流技巧。
+      请直接返回内心独白文本。
+
+  # ============================================
+  # 角色创建提示词
+  # ============================================
+  character:
+    system: |
+      你是一位角色设定专家，擅长创造立体、有深度的虚构角色。
+
+    generate_profile: |
+      为故事创建角色：
+
+      世界类型：{{.WorldType}}
+      角色定位：{{.Role}}
+      背景设定：{{.Background}}
+
+      请以JSON格式返回角色档案：
+      {
+        "name": "角色姓名",
+        "age": 年龄,
+        "gender": "性别",
+        "appearance": "外貌描述",
+        "background": "出身背景",
+        "personality": ["性格特征1", "性格特征2"],
+        "abilities": ["能力1", "能力2"],
+        "motivation": {
+          "core_need": "核心需求",
+          "external_goal": "外在目标",
+          "fatal_flaw": "致命缺陷",
+          "fear": "最害怕的事"
+        }
+      }
+      只返回JSON，不要包含其他内容。
+
+# ============================================
+# 系统配置
+# ============================================
+system:
+  # 项目配置
+  project:
+    max_parallel_stories: 5
+    auto_save_interval: 60  # 秒
+    backup_enabled: true
+
+  # 日志配置
+  logging:
+    level: "info"
+    file: "logs/novel-system.log"
+    max_size: 100  # MB
+    max_backups: 3
+
+  # 重试配置
+  retry:
+    max_attempts: 3
+    initial_delay: 1  # 秒
+    max_delay: 10
+
+  # 超时配置
+  timeout:
+    llm_request: 600  # 秒 - 增加到10分钟
+    chapter_generation: 600  # 秒

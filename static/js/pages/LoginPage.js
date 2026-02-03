@@ -9,46 +9,49 @@ import router from '../router.js';
 export default class LoginPage extends BaseComponent {
     render() {
         return `
-            <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
-                <div class="col-md-5 col-lg-4">
-                    <div class="card shadow">
-                        <div class="card-body p-5">
-                            <div class="text-center mb-4">
-                                <h2 class="fw-bold">
-                                    <i class="bi bi-book text-primary me-2"></i>
-                                    NovelFlow 叙谱
-                                </h2>
-                                <p class="text-muted">AI驱动的小说创作平台</p>
-                            </div>
-                            
-                            <form id="loginForm">
-                                <div class="mb-3">
-                                    <label for="username" class="form-label">用户名</label>
-                                    <input type="text" class="form-control" id="username" name="username" required>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="password" class="form-label">密码</label>
-                                    <input type="password" class="form-control" id="password" name="password" required>
-                                </div>
-                                
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="remember">
-                                    <label class="form-check-label" for="remember">记住我</label>
-                                </div>
-                                
-                                <button type="submit" class="btn btn-primary w-100 mb-3">
-                                    <i class="bi bi-box-arrow-in-right me-1"></i>
-                                    登录
-                                </button>
-                                
-                                <div class="text-center">
-                                    <span class="text-muted">还没有账号？</span>
-                                    <a href="#/register" class="text-decoration-none">立即注册</a>
-                                </div>
-                            </form>
-                        </div>
+            <div class="auth-page">
+                <div class="auth-card">
+                    <div class="auth-logo">
+                        <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
+                            <rect x="8" y="16" width="24" height="28" rx="2" fill="#E8E8F4"/>
+                            <rect x="12" y="12" width="24" height="28" rx="2" fill="#A5A7E8"/>
+                            <rect x="16" y="8" width="24" height="28" rx="2" fill="#5B5FC7"/>
+                        </svg>
+                        <span>NovelFlow 叙谱</span>
                     </div>
+                    <p class="auth-subtitle">AI驱动的小说创作平台</p>
+
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="username" name="username"
+                                   placeholder="请输入用户名" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">密码</label>
+                            <input type="password" class="form-control" id="password" name="password"
+                                   placeholder="请输入密码" required>
+                        </div>
+
+                        <div class="mb-4 d-flex justify-content-between align-items-center">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="remember">
+                                <label class="form-check-label" for="remember">记住我</label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-lg mb-3">
+                            登录
+                        </button>
+
+                        <div class="auth-divider">或</div>
+
+                        <div class="text-center">
+                            <span class="text-muted">还没有账号？</span>
+                            <a href="#/register" class="text-decoration-none" style="color: var(--primary); font-weight: 500;">立即注册</a>
+                        </div>
+                    </form>
                 </div>
             </div>
         `;
@@ -91,14 +94,14 @@ export default class LoginPage extends BaseComponent {
         try {
             const submitBtn = this.$('button[type="submit"]');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>登录中...';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>登录中...';
 
             const response = await authAPI.login(username, password);
 
             if (response.token) {
                 userActions.login(response.user, response.token);
-                showToast('登录成功！', 'success');
-                router.navigate('/');
+                showToast('登录成功', 'success');
+                router.navigate('/dashboard');
             } else {
                 showToast('登录失败，请检查用户名和密码', 'error');
             }
@@ -109,7 +112,7 @@ export default class LoginPage extends BaseComponent {
             const submitBtn = this.$('button[type="submit"]');
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-1"></i>登录';
+                submitBtn.innerHTML = '登录';
             }
         }
     }

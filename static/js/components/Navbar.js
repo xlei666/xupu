@@ -24,10 +24,14 @@ export default class Navbar extends BaseComponent {
         }
 
         return `
-            <div class="container-fluid">
+            <div class="container-fluid d-flex align-items-center" style="height: 100%;">
                 <a class="navbar-brand" href="#/">
-                    <i class="bi bi-book me-2"></i>
-                    NovelFlow 叙谱
+                    <svg width="24" height="24" viewBox="0 0 48 48" fill="none">
+                        <rect x="8" y="16" width="24" height="28" rx="2" fill="#E8E8F4"/>
+                        <rect x="12" y="12" width="24" height="28" rx="2" fill="#A5A7E8"/>
+                        <rect x="16" y="8" width="24" height="28" rx="2" fill="#5B5FC7"/>
+                    </svg>
+                    NovelFlow
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
@@ -36,25 +40,20 @@ export default class Navbar extends BaseComponent {
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
                             <a class="nav-link" href="#/">
-                                <i class="bi bi-grid me-1"></i>
-                                我的项目
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#/settings">
-                                <i class="bi bi-gear me-1"></i>
-                                设置
+                                <i class="bi bi-grid-3x3-gap me-1"></i>
+                                项目
                             </a>
                         </li>
                     </ul>
-                    <div class="d-flex align-items-center">
-                        <span class="text-white me-3">
-                            <i class="bi bi-person-circle me-1"></i>
-                            ${this.user.username || '用户'}
-                        </span>
-                        <button class="btn btn-outline-light btn-sm" id="logoutBtn">
-                            <i class="bi bi-box-arrow-right me-1"></i>
-                            退出
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-2 px-2 py-1" style="background: var(--bg-hover); border-radius: var(--radius-md);">
+                            <i class="bi bi-person-circle" style="color: var(--text-secondary);"></i>
+                            <span style="color: var(--text-primary); font-weight: 500; font-size: 0.875rem;">
+                                ${this.user.username || '用户'}
+                            </span>
+                        </div>
+                        <button class="btn btn-ghost btn-sm" id="logoutBtn" title="退出登录">
+                            <i class="bi bi-box-arrow-right"></i>
                         </button>
                     </div>
                 </div>

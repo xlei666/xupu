@@ -8,53 +8,56 @@ import router from '../router.js';
 export default class RegisterPage extends BaseComponent {
     render() {
         return `
-            <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
-                <div class="col-md-5 col-lg-4">
-                    <div class="card shadow">
-                        <div class="card-body p-5">
-                            <div class="text-center mb-4">
-                                <h2 class="fw-bold">
-                                    <i class="bi bi-person-plus text-primary me-2"></i>
-                                    注册账号
-                                </h2>
-                                <p class="text-muted">加入NovelFlow开始创作</p>
-                            </div>
-                            
-                            <form id="registerForm">
-                                <div class="mb-3">
-                                    <label for="username" class="form-label">用户名</label>
-                                    <input type="text" class="form-control" id="username" name="username" required>
-                                    <div class="form-text">3-20个字符，只能包含字母、数字和下划线</div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="email" class="form-label">邮箱</label>
-                                    <input type="email" class="form-control" id="email" name="email" required>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="password" class="form-label">密码</label>
-                                    <input type="password" class="form-control" id="password" name="password" required>
-                                    <div class="form-text">至少6个字符</div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="confirmPassword" class="form-label">确认密码</label>
-                                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
-                                </div>
-                                
-                                <button type="submit" class="btn btn-primary w-100 mb-3">
-                                    <i class="bi bi-person-plus me-1"></i>
-                                    注册
-                                </button>
-                                
-                                <div class="text-center">
-                                    <span class="text-muted">已有账号？</span>
-                                    <a href="#/login" class="text-decoration-none">立即登录</a>
-                                </div>
-                            </form>
-                        </div>
+            <div class="auth-page">
+                <div class="auth-card">
+                    <div class="auth-logo">
+                        <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
+                            <rect x="8" y="16" width="24" height="28" rx="2" fill="#E8E8F4"/>
+                            <rect x="12" y="12" width="24" height="28" rx="2" fill="#A5A7E8"/>
+                            <rect x="16" y="8" width="24" height="28" rx="2" fill="#5B5FC7"/>
+                        </svg>
+                        <span>创建账号</span>
                     </div>
+                    <p class="auth-subtitle">加入 NovelFlow 开始您的创作之旅</p>
+
+                    <form id="registerForm">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="username" name="username"
+                                   placeholder="请输入用户名" required>
+                            <div class="form-text">3-20个字符，只能包含字母、数字和下划线</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">邮箱</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   placeholder="请输入邮箱地址" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">密码</label>
+                            <input type="password" class="form-control" id="password" name="password"
+                                   placeholder="请设置密码" required>
+                            <div class="form-text">至少6个字符</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="confirmPassword" class="form-label">确认密码</label>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword"
+                                   placeholder="请再次输入密码" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-lg mb-3">
+                            创建账号
+                        </button>
+
+                        <div class="auth-divider">或</div>
+
+                        <div class="text-center">
+                            <span class="text-muted">已有账号？</span>
+                            <a href="#/login" class="text-decoration-none" style="color: var(--primary); font-weight: 500;">立即登录</a>
+                        </div>
+                    </form>
                 </div>
             </div>
         `;
@@ -111,11 +114,11 @@ export default class RegisterPage extends BaseComponent {
         try {
             const submitBtn = this.$('button[type="submit"]');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>注册中...';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>注册中...';
 
             await authAPI.register({ username, email, password });
 
-            showToast('注册成功！请登录', 'success');
+            showToast('注册成功，请登录', 'success');
             router.navigate('/login');
         } catch (error) {
             console.error('注册错误:', error);
@@ -124,7 +127,7 @@ export default class RegisterPage extends BaseComponent {
             const submitBtn = this.$('button[type="submit"]');
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="bi bi-person-plus me-1"></i>注册';
+                submitBtn.innerHTML = '创建账号';
             }
         }
     }

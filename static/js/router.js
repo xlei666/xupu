@@ -173,17 +173,17 @@ const router = new Router();
 
 // 添加认证守卫
 router.beforeEach(({ path, meta }) => {
-    const requiresAuth = meta.requiresAuth !== false; // 默认需要认证
+    const requiresAuth = meta.requiresAuth === true;
     const isAuthenticated = userActions.isAuthenticated();
 
     // 如果需要认证但未登录，跳转到登录页
-    if (requiresAuth && !isAuthenticated && path !== '/login' && path !== '/register') {
+    if (requiresAuth && !isAuthenticated) {
         return '/login';
     }
 
-    // 如果已登录访问登录页，跳转到首页
+    // 如果已登录访问登录/注册页，跳转到仪表盘
     if (isAuthenticated && (path === '/login' || path === '/register')) {
-        return '/';
+        return '/dashboard';
     }
 
     return true;

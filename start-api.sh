@@ -6,4 +6,4 @@ export DB_PASSWORD=""
 export DB_NAME=xupu
 export JWT_SECRET=test-secret
 
-./bin/api
+./api

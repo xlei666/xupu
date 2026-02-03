@@ -16,9 +16,9 @@ export default class DashboardPage extends BaseComponent {
     render() {
         if (this.loading) {
             return `
-                <div class="container mt-4">
+                <div class="container py-4">
                     <div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
-                        <div class="spinner-border text-primary" role="status">
+                        <div class="spinner-border" role="status">
                             <span class="visually-hidden">加载中...</span>
                         </div>
                     </div>
@@ -27,21 +27,21 @@ export default class DashboardPage extends BaseComponent {
         }
 
         return `
-            <div class="container mt-4">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="mb-0">
-                        <i class="bi bi-grid me-2"></i>
+            <div class="container py-4">
+                <div class="page-header">
+                    <h1 class="page-title">
+                        <i class="bi bi-grid-3x3-gap"></i>
                         我的项目
-                    </h2>
+                    </h1>
                     <button class="btn btn-primary" id="createProjectBtn">
-                        <i class="bi bi-plus-lg me-1"></i>
+                        <i class="bi bi-plus-lg"></i>
                         创建项目
                     </button>
                 </div>
-                
+
                 ${this.renderProjects()}
             </div>
-            
+
             ${this.renderCreateModal()}
         `;
     }
@@ -50,9 +50,15 @@ export default class DashboardPage extends BaseComponent {
         if (this.projects.length === 0) {
             return `
                 <div class="empty-state">
-                    <i class="bi bi-folder-x"></i>
+                    <div class="empty-state-icon">
+                        <i class="bi bi-folder2-open"></i>
+                    </div>
                     <h3>还没有项目</h3>
-                    <p>点击"创建项目"开始您的创作之旅</p>
+                    <p>点击「创建项目」开始您的创作之旅</p>
+                    <button class="btn btn-primary" id="emptyCreateBtn">
+                        <i class="bi bi-plus-lg"></i>
+                        创建第一个项目
+                    </button>
                 </div>
             `;
         }
@@ -77,11 +83,9 @@ export default class DashboardPage extends BaseComponent {
                             <i class="bi bi-clock me-1"></i>
                             ${formatRelativeTime(project.updated_at || project.created_at)}
                         </small>
-                        <div>
-                            <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${project.id}">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
+                        <button class="btn btn-ghost btn-sm delete-btn" data-id="${project.id}" title="删除项目">
+                            <i class="bi bi-trash"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -91,7 +95,7 @@ export default class DashboardPage extends BaseComponent {
     renderCreateModal() {
         return `
             <div class="modal fade" id="createProjectModal" tabindex="-1">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title">创建新项目</h5>
@@ -101,16 +105,18 @@ export default class DashboardPage extends BaseComponent {
                             <div class="modal-body">
                                 <div class="mb-3">
                                     <label for="projectName" class="form-label">项目名称</label>
-                                    <input type="text" class="form-control" id="projectName" name="name" required>
+                                    <input type="text" class="form-control" id="projectName" name="name"
+                                           placeholder="给你的小说起个名字" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="projectDescription" class="form-label">项目描述</label>
-                                    <textarea class="form-control" id="projectDescription" name="description" rows="3"></textarea>
+                                    <label for="projectDescription" class="form-label">项目描述 <span class="text-muted">(可选)</span></label>
+                                    <textarea class="form-control" id="projectDescription" name="description" rows="3"
+                                              placeholder="简单描述一下这部小说的主题或内容"></textarea>
                                 </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                                <button type="submit" class="btn btn-primary">创建</button>
+                                <button type="submit" class="btn btn-primary">创建项目</button>
                             </div>
                         </form>
                     </div>
@@ -128,6 +134,12 @@ export default class DashboardPage extends BaseComponent {
         const createBtn = this.$('#createProjectBtn');
         if (createBtn) {
             this.addEventListener(createBtn, 'click', () => this.showCreateModal());
+        }
+
+        // 空状态创建按钮
+        const emptyCreateBtn = this.$('#emptyCreateBtn');
+        if (emptyCreateBtn) {
+            this.addEventListener(emptyCreateBtn, 'click', () => this.showCreateModal());
         }
 
         // 创建项目表单
@@ -192,14 +204,14 @@ export default class DashboardPage extends BaseComponent {
         try {
             const submitBtn = this.$('#createProjectForm button[type="submit"]');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>创建中...';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>创建中...';
 
             const project = await projectAPI.createProject(projectData);
 
             projectActions.addProject(project);
             this.projects.push(project);
 
-            showToast('项目创建成功！', 'success');
+            showToast('项目创建成功', 'success');
 
             // 关闭模态框
             const modal = bootstrap.Modal.getInstance(this.$('#createProjectModal'));
@@ -220,7 +232,7 @@ export default class DashboardPage extends BaseComponent {
             const submitBtn = this.$('#createProjectForm button[type="submit"]');
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '创建';
+                submitBtn.innerHTML = '创建项目';
             }
         }
     }

@@ -173,8 +173,8 @@ export default class DashboardPage extends BaseComponent {
             this.loading = true;
             this.update();
 
-            const projects = await projectAPI.getProjects();
-            this.projects = projects || [];
+            const response = await projectAPI.getProjects();
+            this.projects = response?.data?.projects || [];
             projectActions.setProjects(this.projects);
 
             this.loading = false;
@@ -206,7 +206,8 @@ export default class DashboardPage extends BaseComponent {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>创建中...';
 
-            const project = await projectAPI.createProject(projectData);
+            const response = await projectAPI.createProject(projectData);
+            const project = response?.data?.project || response?.data || response;
 
             projectActions.addProject(project);
             this.projects.push(project);

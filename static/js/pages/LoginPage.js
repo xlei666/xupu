@@ -98,8 +98,8 @@ export default class LoginPage extends BaseComponent {
 
             const response = await authAPI.login(username, password);
 
-            if (response.token) {
-                userActions.login(response.user, response.token);
+            if (response.success && response.data?.tokens?.access_token) {
+                userActions.login(response.data.user, response.data.tokens.access_token);
                 showToast('登录成功', 'success');
                 router.navigate('/dashboard');
             } else {

@@ -10,7 +10,7 @@ import (
 
 // Server API服务器
 type Server struct {
-	engine      *gin.Engine
+	engine       *gin.Engine
 	orchestrator *orchestrator.Orchestrator
 }
 
@@ -26,7 +26,7 @@ func NewServer() *Server {
 	engine := gin.New()
 
 	return &Server{
-		engine:      engine,
+		engine:       engine,
 		orchestrator: orc,
 	}
 }
@@ -49,6 +49,7 @@ func (s *Server) RegisterRoutes(
 	characterHandler *handlers.CharacterHandler,
 	synopsisHandler *handlers.SynopsisHandler,
 	writerHandler *handlers.WriterHandler,
+	externalRankHandler *handlers.ExternalRankHandler,
 ) {
 	// 同时创建任务处理器
 	taskHandler := handlers.NewTaskHandler()
@@ -162,6 +163,21 @@ func (s *Server) RegisterRoutes(
 			tasks.GET("/stats", taskHandler.GetSchedulerStats)
 			tasks.GET("/project/:id", taskHandler.ListProjectTasks)
 			tasks.GET("/:id/wait", taskHandler.WaitForTask)
+		}
+
+		// 外部数据源
+		external := v1.Group("/external")
+		{
+			// 排行榜
+			external.GET("/ranks/fanqie", externalRankHandler.GetFanqieRank)
+
+			// 番茄小说详细API
+			fanqie := external.Group("/fanqie")
+			{
+				fanqie.GET("/books/:bookId", externalRankHandler.GetFanqieBookDetail)
+				fanqie.GET("/books/:bookId/chapters", externalRankHandler.GetFanqieChapterList)
+				fanqie.GET("/chapters/:chapterId", externalRankHandler.GetFanqieChapterContent)
+			}
 		}
 	}
 }

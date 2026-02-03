@@ -249,7 +249,8 @@ export default class ProjectDetailPage extends BaseComponent {
             this.loading = true;
             this.update();
 
-            this.project = await projectAPI.getProject(this.projectId);
+            const response = await projectAPI.getProject(this.projectId);
+            this.project = response?.data?.project || response?.data || null;
             projectActions.setCurrentProject(this.project);
 
             this.loading = false;
@@ -257,6 +258,7 @@ export default class ProjectDetailPage extends BaseComponent {
         } catch (error) {
             console.error('加载项目失败:', error);
             showToast('加载项目失败', 'error');
+            this.project = null;
             this.loading = false;
             this.update();
         }
@@ -264,7 +266,8 @@ export default class ProjectDetailPage extends BaseComponent {
 
     async loadChapters() {
         try {
-            this.chapters = await chapterAPI.getChapters(this.projectId) || [];
+            const response = await chapterAPI.getChapters(this.projectId);
+            this.chapters = response?.data?.chapters || [];
             this.update();
         } catch (error) {
             console.error('加载章节失败:', error);
@@ -291,7 +294,8 @@ export default class ProjectDetailPage extends BaseComponent {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>创建中...';
 
-            const chapter = await chapterAPI.createChapter(this.projectId, chapterData);
+            const response = await chapterAPI.createChapter(this.projectId, chapterData);
+            const chapter = response?.data?.chapter || response?.data || response;
 
             this.chapters.push(chapter);
             showToast('章节创建成功！', 'success');

@@ -37,8 +37,8 @@ async function request(url, options = {}) {
 
         // 处理其他错误状态
         if (!response.ok) {
-            const error = await response.json().catch(() => ({ message: '请求失败' }));
-            throw new Error(error.message || `HTTP ${response.status}`);
+            const errorData = await response.json().catch(() => ({ error: '请求失败' }));
+            throw new Error(errorData.error || errorData.message || `HTTP ${response.status}`);
         }
 
         // 处理204 No Content
@@ -95,22 +95,22 @@ async function del(url, options = {}) {
 export const authAPI = {
     // 登录
     async login(username, password) {
-        return post('/api/auth/login', { username, password });
+        return post('/api/v1/auth/login', { username_or_email: username, password });
     },
 
     // 注册
     async register(userData) {
-        return post('/api/auth/register', userData);
+        return post('/api/v1/auth/register', userData);
     },
 
     // 获取当前用户信息
     async getCurrentUser() {
-        return get('/api/auth/me');
+        return get('/api/v1/users/me');
     },
 
     // 登出
     async logout() {
-        return post('/api/auth/logout');
+        return post('/api/v1/auth/logout');
     }
 };
 
@@ -120,27 +120,27 @@ export const authAPI = {
 export const projectAPI = {
     // 获取项目列表
     async getProjects() {
-        return get('/api/projects');
+        return get('/api/v1/projects');
     },
 
     // 获取项目详情
     async getProject(id) {
-        return get(`/api/projects/${id}`);
+        return get(`/api/v1/projects/${id}`);
     },
 
     // 创建项目
     async createProject(projectData) {
-        return post('/api/projects', projectData);
+        return post('/api/v1/projects', projectData);
     },
 
     // 更新项目
     async updateProject(id, projectData) {
-        return put(`/api/projects/${id}`, projectData);
+        return put(`/api/v1/projects/${id}`, projectData);
     },
 
     // 删除项目
     async deleteProject(id) {
-        return del(`/api/projects/${id}`);
+        return del(`/api/v1/projects/${id}`);
     }
 };
 
@@ -150,27 +150,27 @@ export const projectAPI = {
 export const chapterAPI = {
     // 获取章节列表
     async getChapters(projectId) {
-        return get(`/api/projects/${projectId}/chapters`);
+        return get(`/api/v1/projects/${projectId}/chapters`);
     },
 
     // 获取章节详情
     async getChapter(projectId, chapterId) {
-        return get(`/api/projects/${projectId}/chapters/${chapterId}`);
+        return get(`/api/v1/projects/${projectId}/chapters/${chapterId}`);
     },
 
     // 创建章节
     async createChapter(projectId, chapterData) {
-        return post(`/api/projects/${projectId}/chapters`, chapterData);
+        return post(`/api/v1/projects/${projectId}/chapters`, chapterData);
     },
 
     // 更新章节
     async updateChapter(projectId, chapterId, chapterData) {
-        return put(`/api/projects/${projectId}/chapters/${chapterId}`, chapterData);
+        return put(`/api/v1/projects/${projectId}/chapters/${chapterId}`, chapterData);
     },
 
     // 删除章节
     async deleteChapter(projectId, chapterId) {
-        return del(`/api/projects/${projectId}/chapters/${chapterId}`);
+        return del(`/api/v1/projects/${projectId}/chapters/${chapterId}`);
     }
 };
 
@@ -180,22 +180,22 @@ export const chapterAPI = {
 export const narrativeAPI = {
     // 获取叙事节点
     async getNodes(projectId) {
-        return get(`/api/projects/${projectId}/narrative-nodes`);
+        return get(`/api/v1/projects/${projectId}/narrative-nodes`);
     },
 
     // 创建叙事节点
     async createNode(projectId, nodeData) {
-        return post(`/api/projects/${projectId}/narrative-nodes`, nodeData);
+        return post(`/api/v1/projects/${projectId}/narrative-nodes`, nodeData);
     },
 
     // 更新叙事节点
     async updateNode(projectId, nodeId, nodeData) {
-        return put(`/api/projects/${projectId}/narrative-nodes/${nodeId}`, nodeData);
+        return put(`/api/v1/projects/${projectId}/narrative-nodes/${nodeId}`, nodeData);
     },
 
     // 删除叙事节点
     async deleteNode(projectId, nodeId) {
-        return del(`/api/projects/${projectId}/narrative-nodes/${nodeId}`);
+        return del(`/api/v1/projects/${projectId}/narrative-nodes/${nodeId}`);
     }
 };
 
@@ -205,22 +205,22 @@ export const narrativeAPI = {
 export const worldAPI = {
     // 获取世界设定
     async getWorldSettings(projectId) {
-        return get(`/api/projects/${projectId}/world-settings`);
+        return get(`/api/v1/projects/${projectId}/world-stages`);
     },
 
-    // 创建世界设定
-    async createWorldSetting(projectId, settingData) {
-        return post(`/api/projects/${projectId}/world-settings`, settingData);
+    // 保存世界设定
+    async saveWorldSettings(projectId, settingData) {
+        return post(`/api/v1/projects/${projectId}/world-stages`, settingData);
     },
 
-    // 更新世界设定
-    async updateWorldSetting(projectId, settingId, settingData) {
-        return put(`/api/projects/${projectId}/world-settings/${settingId}`, settingData);
+    // 生成世界设定阶段（AI）
+    async generateWorldStage(projectId, stage) {
+        return post(`/api/v1/projects/${projectId}/world-stages/${stage}/generate`);
     },
 
-    // 生成世界设定（AI）
-    async generateWorldSetting(projectId, params) {
-        return post(`/api/projects/${projectId}/world-settings/generate`, params);
+    // 抽卡生成世界设定
+    async gachaWorldSettings(projectId, params) {
+        return post(`/api/v1/projects/${projectId}/world-stages/gacha`, params);
     }
 };
 
@@ -230,22 +230,27 @@ export const worldAPI = {
 export const characterAPI = {
     // 获取角色列表
     async getCharacters(projectId) {
-        return get(`/api/projects/${projectId}/characters`);
+        return get(`/api/v1/projects/${projectId}/characters`);
     },
 
     // 创建角色
     async createCharacter(projectId, characterData) {
-        return post(`/api/projects/${projectId}/characters`, characterData);
+        return post(`/api/v1/projects/${projectId}/characters`, characterData);
     },
 
     // 更新角色
     async updateCharacter(projectId, characterId, characterData) {
-        return put(`/api/projects/${projectId}/characters/${characterId}`, characterData);
+        return put(`/api/v1/projects/${projectId}/characters/${characterId}`, characterData);
     },
 
     // 删除角色
     async deleteCharacter(projectId, characterId) {
-        return del(`/api/projects/${projectId}/characters/${characterId}`);
+        return del(`/api/v1/projects/${projectId}/characters/${characterId}`);
+    },
+
+    // 抽卡生成角色
+    async gachaCharacters(projectId, params) {
+        return post(`/api/v1/projects/${projectId}/characters/gacha`, params);
     }
 };
 
@@ -253,14 +258,24 @@ export const characterAPI = {
  * 写作器API
  */
 export const writerAPI = {
-    // 生成场景
-    async generateScene(projectId, sceneData) {
-        return post(`/api/projects/${projectId}/writer/generate-scene`, sceneData);
+    // 续写章节
+    async continueChapter(projectId, chapterId, params) {
+        return post(`/api/v1/projects/${projectId}/chapters/${chapterId}/continue`, params);
     },
 
-    // 生成对话
-    async generateDialogue(projectId, dialogueData) {
-        return post(`/api/projects/${projectId}/writer/generate-dialogue`, dialogueData);
+    // 生成章节大纲
+    async generateChapterOutline(projectId, chapterId) {
+        return get(`/api/v1/projects/${projectId}/chapters/${chapterId}/outline`);
+    }
+};
+
+/**
+ * 简介API
+ */
+export const synopsisAPI = {
+    // 抽卡生成简介
+    async gachaSynopsis(projectId, params) {
+        return post(`/api/v1/projects/${projectId}/synopsis/gacha`, params);
     }
 };
 
@@ -271,5 +286,6 @@ export default {
     narrativeAPI,
     worldAPI,
     characterAPI,
-    writerAPI
+    writerAPI,
+    synopsisAPI
 };

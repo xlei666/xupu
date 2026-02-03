@@ -1,0 +1,734 @@
+Num Charmaps: 1
+Charmap 0: FT_ENCODING_UNICODE ID: 3,1
+  -> Found PUA support in Charmap 0
+Reference font has 10 faces.
+Selected Reference Face Index 0 (Supports '中')
+Loaded 362 PUA codes.
+Pre-rendering reference characters...
+Generated 198 reference bitmaps.
+Solving...
+Code 0xe3e8 -> 十 (Error: 12338.054166666667)
+Code 0xe3e9 -> 在 (Error: 8226.902150537635)
+Code 0xe3ea -> 主 (Error: 1517.932183908046)
+Code 0xe3eb -> 行 (Error: 14155.598790322581)
+Code 0xe3ec -> 家 (Error: 12757.880208333334)
+Code 0xe3ed -> 军 (Error: 4558.567857142857)
+Code 0xe3ee -> 然 (Error: 12644.9365234375)
+Code 0xe3ef -> 十 (Error: 13011.910416666668)
+Code 0xe3f0 -> 地 (Error: 14072.43440860215)
+Code 0xe3f1 -> 个 (Error: 11785.567708333334)
+Code 0xe3f2 -> 要 (Error: 4403.566666666667)
+Code 0xe3f3 -> 一 (Error: 10876.746428571429)
+Code 0xe3f4 -> 个 (Error: 10461.930208333333)
+Code 0xe3f5 -> 和 (Error: 1110.9644048943271)
+Code 0xe3f7 -> 一 (Error: 12411.490666666667)
+Code 0xe3f8 -> 到 (Error: 12646.631034482758)
+Code 0xe3f9 -> 还 (Error: 2557.842741935484)
+Code 0xe3fa -> 一 (Error: 12717.676543209876)
+Code 0xe3fb -> 现 (Error: 984.9511111111111)
+Code 0xe3fc -> 从 (Error: 10693.185057471264)
+Code 0xe3fd -> 文 (Error: 12459.275)
+Code 0xe400 -> 此 (Error: 5019.387096774193)
+Code 0xe401 -> 中 (Error: 15250.383333333333)
+Code 0xe402 -> 月 (Error: 6910.98024691358)
+Code 0xe403 -> 一 (Error: 10874.416)
+Code 0xe404 -> 出 (Error: 1213.4962779156328)
+Code 0xe405 -> 战 (Error: 7009.265625)
+Code 0xe406 -> 工 (Error: 944.492)
+Code 0xe407 -> 根 (Error: 10782.4052734375)
+Code 0xe408 -> 十 (Error: 10098.242708333333)
+Code 0xe409 -> 界 (Error: 9427.623655913978)
+Code 0xe40a -> 高 (Error: 13373.744791666666)
+Code 0xe40b -> 先 (Error: 7381.271875)
+Code 0xe40c -> 且 (Error: 10613.5)
+Code 0xe40d -> 一 (Error: 9563.145833333334)
+Code 0xe40e -> 都 (Error: 1144.9739854318418)
+Code 0xe40f -> 平 (Error: 896.2241379310345)
+Code 0xe410 -> 义 (Error: 4272.815555555556)
+Code 0xe411 -> 作 (Error: 8917.479569892474)
+Code 0xe412 -> 人 (Error: 10079.03337041157)
+Code 0xe413 -> 十 (Error: 13796.522916666667)
+Code 0xe414 -> 行 (Error: 11449.623991935483)
+Code 0xe415 -> 其 (Error: 13124.027956989248)
+Code 0xe416 -> 一 (Error: 7371.370833333333)
+Code 0xe417 -> 那 (Error: 813.4149425287357)
+Code 0xe418 -> 出 (Error: 10618.781637717122)
+Code 0xe41a -> 会 (Error: 11829.905241935483)
+Code 0xe41b -> 文 (Error: 9870.671875)
+Code 0xe41c -> 些 (Error: 11374.706451612903)
+Code 0xe41d -> 十 (Error: 11166.214583333332)
+Code 0xe41e -> 是 (Error: 1353.35)
+Code 0xe41f -> 十 (Error: 2392.0291666666667)
+Code 0xe420 -> 十 (Error: 13520.236458333333)
+Code 0xe421 -> 学 (Error: 12657.808333333332)
+Code 0xe422 -> 气 (Error: 10221.139438085327)
+Code 0xe423 -> 大 (Error: 6145.366666666667)
+Code 0xe424 -> 发 (Error: 12530.286290322581)
+Code 0xe425 -> 两 (Error: 9288.455952380953)
+Code 0xe426 -> 命 (Error: 8833.369140625)
+Code 0xe427 -> 全 (Error: 4600.197580645161)
+Code 0xe428 -> 后 (Error: 731.7182795698925)
+Code 0xe429 -> 十 (Error: 10339.866666666667)
+Code 0xe42a -> 性 (Error: 13214.485887096775)
+Code 0xe42b -> 便 (Error: 12958.222684703434)
+Code 0xe42c -> 报 (Error: 14997.6125)
+Code 0xe42d -> 一 (Error: 11448.116666666667)
+Code 0xe42e -> 它 (Error: 2000.2988095238095)
+Code 0xe42f -> 十 (Error: 7490.729166666667)
+Code 0xe430 -> 流 (Error: 14600.652688172044)
+Code 0xe431 -> 而 (Error: 5512.306666666666)
+Code 0xe432 -> 想 (Error: 15131.484946236558)
+Code 0xe433 -> 年 (Error: 10503.532291666666)
+Code 0xe434 -> 出 (Error: 9778.459057071961)
+Code 0xe435 -> 公 (Error: 9003.674193548388)
+Code 0xe436 -> 了 (Error: 778.3914835164835)
+Code 0xe437 -> 常 (Error: 9736.70982142857)
+Code 0xe438 -> 以 (Error: 13415.262513904338)
+Code 0xe439 -> 活 (Error: 13254.004166666668)
+Code 0xe43a -> 可 (Error: 1931.4464285714287)
+Code 0xe43b -> 活 (Error: 8833.11875)
+Code 0xe43c -> 先 (Error: 6441.722916666667)
+Code 0xe43d -> 一 (Error: 12426.073076923078)
+Code 0xe43e -> 一 (Error: 8855.853333333333)
+Code 0xe43f -> 时 (Error: 11192.288505747127)
+Code 0xe440 -> 行 (Error: 15966.783266129032)
+Code 0xe441 -> 队 (Error: 11524.907327586207)
+Code 0xe442 -> 上 (Error: 5703.001149425288)
+Code 0xe443 -> 十 (Error: 11646.463541666666)
+Code 0xe444 -> 最 (Error: 14172.462222222222)
+Code 0xe445 -> 业 (Error: 12703.342222222222)
+Code 0xe446 -> 价 (Error: 11747.065625)
+Code 0xe447 -> 决 (Error: 10498.157291666666)
+Code 0xe448 -> 一 (Error: 9547.291358024691)
+Code 0xe449 -> 个 (Error: 4026.546875)
+Code 0xe44a -> 说 (Error: 7826.519791666667)
+Code 0xe44b -> 十 (Error: 9360.703125)
+Code 0xe44c -> 位 (Error: 13252.02809573361)
+Code 0xe44d -> 里 (Error: 2662.0873563218393)
+Code 0xe44e -> 安 (Error: 10760.325806451612)
+Code 0xe44f -> 行 (Error: 11924.542338709678)
+Code 0xe450 -> 外 (Error: 15716.1357421875)
+Code 0xe451 -> 一 (Error: 7271.865277777778)
+Code 0xe452 -> 十 (Error: 15006.678125)
+Code 0xe453 -> 作 (Error: 16653.2311827957)
+Code 0xe454 -> 从 (Error: 13033.175268817204)
+Code 0xe455 -> 一 (Error: 11613.013888888889)
+Code 0xe456 -> 报 (Error: 7968.515625)
+Code 0xe457 -> 从 (Error: 10567.496666666666)
+Code 0xe458 -> 面 (Error: 7128.69540229885)
+Code 0xe459 -> 道 (Error: 11654.684946236559)
+Code 0xe45a -> 一 (Error: 11635.810666666666)
+Code 0xe45c -> 点 (Error: 10942.382795698924)
+Code 0xe45d -> 地 (Error: 5544.120430107527)
+Code 0xe45e -> 直 (Error: 12530.779166666667)
+Code 0xe45f -> 一 (Error: 10200.394444444444)
+Code 0xe460 -> 好 (Error: 8025.103830645161)
+Code 0xe461 -> 价 (Error: 10833.165625)
+Code 0xe462 -> 十 (Error: 9742.13125)
+Code 0xe463 -> 而 (Error: 15155.94)
+Code 0xe464 -> 一 (Error: 12829.669047619047)
+Code 0xe465 -> 把 (Error: 7616.676411290323)
+Code 0xe466 -> 一 (Error: 9124.717857142858)
+Code 0xe467 -> 同 (Error: 1243.9261904761904)
+Code 0xe468 -> 十 (Error: 9304.103830645161)
+Code 0xe469 -> 机 (Error: 12156.8876953125)
+Code 0xe46a -> 没 (Error: 3388.8896982310093)
+Code 0xe46b -> 去 (Error: 12683.885416666666)
+Code 0xe46c -> 电 (Error: 9767.4743130227)
+Code 0xe46d -> 十 (Error: 15056.611458333333)
+Code 0xe46e -> 便 (Error: 11448.242455775235)
+Code 0xe46f -> 所 (Error: 11672.361082206035)
+Code 0xe470 -> 一 (Error: 10633.212)
+Code 0xe471 -> 力 (Error: 6324.980603448276)
+Code 0xe472 -> 人 (Error: 10813.557285873192)
+Code 0xe473 -> 去 (Error: 15110.808333333332)
+Code 0xe474 -> 开 (Error: 10128.62183908046)
+Code 0xe475 -> 日 (Error: 1576.577922077922)
+Code 0xe476 -> 政 (Error: 13426.564583333333)
+Code 0xe477 -> 去 (Error: 15185.565625)
+Code 0xe478 -> 但 (Error: 8423.958376690947)
+Code 0xe479 -> 第 (Error: 14319.428125)
+Code 0xe47a -> 命 (Error: 13544.2509765625)
+Code 0xe47b -> 便 (Error: 15467.6285119667)
+Code 0xe47c -> 作 (Error: 990.2731182795699)
+Code 0xe47d -> 上 (Error: 605.2701149425287)
+Code 0xe47e -> 位 (Error: 11615.030176899063)
+Code 0xe47f -> 作 (Error: 10474.92688172043)
+Code 0xe480 -> 有 (Error: 8705.825)
+Code 0xe481 -> 法 (Error: 6297.022916666667)
+Code 0xe482 -> 一 (Error: 11029.874074074074)
+Code 0xe483 -> 点 (Error: 12623.077419354839)
+Code 0xe484 -> 应 (Error: 5598.044791666666)
+Code 0xe485 -> 位 (Error: 8418.473465140478)
+Code 0xe486 -> 和 (Error: 9469.21468298109)
+Code 0xe487 -> 作 (Error: 9489.627471383976)
+Code 0xe488 -> 十 (Error: 12349.577083333334)
+Code 0xe489 -> 身 (Error: 8962.727083333333)
+Code 0xe48a -> 国 (Error: 2672.258333333333)
+Code 0xe48b -> 间 (Error: 13663.707373271889)
+Code 0xe48c -> 一 (Error: 12179.257142857143)
+Code 0xe48d -> 文 (Error: 12470.557291666666)
+Code 0xe48e -> 他 (Error: 5558.774193548387)
+Code 0xe48f -> 个 (Error: 10875.438541666666)
+Code 0xe490 -> 小 (Error: 11441.436004162331)
+Code 0xe491 -> 义 (Error: 5864.78)
+Code 0xe492 -> 个 (Error: 10404.169791666667)
+Code 0xe493 -> 小 (Error: 10261.599375650365)
+Code 0xe494 -> 十 (Error: 9793.061458333334)
+Code 0xe495 -> 十 (Error: 9731.40625)
+Code 0xe496 -> 一 (Error: 11958.177192982455)
+Code 0xe497 -> 个 (Error: 11299.186458333334)
+Code 0xe498 -> 法 (Error: 9513.079637096775)
+Code 0xe499 -> 养 (Error: 8442.922916666666)
+Code 0xe49a -> 对 (Error: 4660.26559139785)
+Code 0xe49b -> 所 (Error: 10461.573361082206)
+Code 0xe49c -> 主 (Error: 10168.406896551724)
+Code 0xe49d -> 活 (Error: 9319.972916666668)
+Code 0xe49e -> 因 (Error: 9520.988095238095)
+Code 0xe49f -> 今 (Error: 14905.646875)
+Code 0xe4a0 -> 到 (Error: 11391.236781609196)
+Code 0xe4a1 -> 个 (Error: 11719.778125)
+Code 0xe4a2 -> 从 (Error: 3082.693103448276)
+Code 0xe4a3 -> 一 (Error: 8107.208080808081)
+Code 0xe4a4 -> 和 (Error: 14446.3170189099)
+Code 0xe4a5 -> 一 (Error: 10354.07380952381)
+Code 0xe4a6 -> 内 (Error: 6178.0432692307695)
+Code 0xe4a7 -> 因 (Error: 2372.0011904761905)
+Code 0xe4a8 -> 点 (Error: 1393.9924731182796)
+Code 0xe4a9 -> 一 (Error: 13151.3)
+Code 0xe4aa -> 三 (Error: 3903.657142857143)
+Code 0xe4ab -> 定 (Error: 886.6838709677419)
+Code 0xe4ac -> 十 (Error: 13355.911458333334)
+Code 0xe4ad -> 十 (Error: 13358.070833333333)
+Code 0xe4ae -> 十 (Error: 14459.803125)
+Code 0xe4af -> 干 (Error: 10596.758620689656)
+Code 0xe4b0 -> 成 (Error: 14473.807291666666)
+Code 0xe4b1 -> 去 (Error: 9350.019791666668)
+Code 0xe4b2 -> 向 (Error: 6726.68339307049)
+Code 0xe4b3 -> 便 (Error: 14603.74505723205)
+Code 0xe4b4 -> 阶 (Error: 12545.144396551725)
+Code 0xe4b5 -> 无 (Error: 13730.171264367817)
+Code 0xe4b7 -> 得 (Error: 10131.992943548386)
+Code 0xe4b8 -> 合 (Error: 13081.439516129032)
+Code 0xe4b9 -> 并 (Error: 6425.611458333334)
+Code 0xe4ba -> 本 (Error: 10564.5009765625)
+Code 0xe4bb -> 十 (Error: 8830.991666666667)
+Code 0xe4bc -> 进 (Error: 8803.672222222222)
+Code 0xe4bd -> 上 (Error: 12944.162068965517)
+Code 0xe4be -> 一 (Error: 12105.65)
+Code 0xe4bf -> 业 (Error: 10202.963218390805)
+Code 0xe4c0 -> 行 (Error: 11432.089717741936)
+Code 0xe4c1 -> 一 (Error: 9952.198717948719)
+Code 0xe4c2 -> 人 (Error: 4091.352688172043)
+Code 0xe4c3 -> 就 (Error: 10324.555443548386)
+Code 0xe4c4 -> 等 (Error: 14427.397849462366)
+Code 0xe4c5 -> 去 (Error: 9326.315625)
+Code 0xe4c6 -> 无 (Error: 15087.306896551725)
+Code 0xe4c7 -> 本 (Error: 13791.4501953125)
+Code 0xe4c8 -> 体 (Error: 10598.3408203125)
+Code 0xe4c9 -> 作 (Error: 12964.292403746098)
+Code 0xe4ca -> 还 (Error: 13471.72177419355)
+Code 0xe4cb -> 个 (Error: 11838.421875)
+Code 0xe4cc -> 定 (Error: 4783.870967741936)
+Code 0xe4cd -> 如 (Error: 7496.332974137931)
+Code 0xe4ce -> 多 (Error: 14587.084375)
+Code 0xe4cf -> 一 (Error: 11407.287719298245)
+Code 0xe4d0 -> 十 (Error: 12092.590625)
+Code 0xe4d1 -> 给 (Error: 8978.632291666667)
+Code 0xe4d2 -> 使 (Error: 8937.69921875)
+Code 0xe4d3 -> 样 (Error: 14168.696572580646)
+Code 0xe4d5 -> 最 (Error: 3235.9133333333334)
+Code 0xe4d6 -> 会 (Error: 13081.54435483871)
+Code 0xe4d7 -> 部 (Error: 5009.972043010753)
+Code 0xe4d9 -> 见 (Error: 11601.015555555556)
+Code 0xe4da -> 养 (Error: 13872.282291666666)
+Code 0xe4db -> 命 (Error: 14564.6533203125)
+Code 0xe4dc -> 队 (Error: 13662.160560344828)
+Code 0xe4dd -> 行 (Error: 5342.259072580645)
+Code 0xe4de -> 一 (Error: 2146.1555555555556)
+Code 0xe4df -> 十 (Error: 12141.522916666667)
+Code 0xe4e0 -> 果 (Error: 2424.616666666667)
+Code 0xe4e1 -> 动 (Error: 2238.0817204301075)
+Code 0xe4e2 -> 十 (Error: 10926.916666666666)
+Code 0xe4e3 -> 一 (Error: 10416.336666666666)
+Code 0xe4e4 -> 义 (Error: 12779.31111111111)
+Code 0xe4e5 -> 见 (Error: 5116.356666666667)
+Code 0xe4e6 -> 法 (Error: 11321.267708333333)
+Code 0xe4e7 -> 自 (Error: 12230.38179347826)
+Code 0xe4e8 -> 跳 (Error: 17057.480208333334)
+Code 0xe4e9 -> 成 (Error: 6924.546875)
+Code 0xe4ea -> 公 (Error: 14115.824731182796)
+Code 0xe4eb -> 天 (Error: 2767.5275862068966)
+Code 0xe4ec -> 应 (Error: 14446.615625)
+Code 0xe4ed -> 于 (Error: 1419.4857142857143)
+Code 0xe4ee -> 公 (Error: 13614.0311827957)
+Code 0xe4ef -> 其 (Error: 1658.9215053763442)
+Code 0xe4f0 -> 发 (Error: 12311.982862903225)
+Code 0xe4f1 -> 位 (Error: 13448.398543184183)
+Code 0xe4f2 -> 见 (Error: 12930.483333333334)
+Code 0xe4f3 -> 的 (Error: 6597.758928571428)
+Code 0xe4f4 -> 入 (Error: 13751.745977011495)
+Code 0xe4f5 -> 小 (Error: 9742.880332986473)
+Code 0xe4f6 -> 人 (Error: 3781.8231368186875)
+Code 0xe4f7 -> 机 (Error: 15293.4658203125)
+Code 0xe4f8 -> 进 (Error: 1490.2077777777777)
+Code 0xe4f9 -> 心 (Error: 10183.710685483871)
+Code 0xe4fa -> 来 (Error: 8834.664583333333)
+Code 0xe4fb -> 个 (Error: 14122.447916666666)
+Code 0xe4fc -> 时 (Error: 1205.7045977011494)
+Code 0xe4fd -> 力 (Error: 4921.798491379311)
+Code 0xe4fe -> 多 (Error: 9120.502155172413)
+Code 0xe4ff -> 开 (Error: 823.903448275862)
+Code 0xe500 -> 己 (Error: 5283.443877551021)
+Code 0xe501 -> 先 (Error: 11783.007291666667)
+Code 0xe502 -> 十 (Error: 9190.595833333333)
+Code 0xe503 -> 用 (Error: 12890.325287356321)
+Code 0xe504 -> 由 (Error: 7911.228365384615)
+Code 0xe505 -> 报 (Error: 13285.707291666668)
+Code 0xe506 -> 界 (Error: 7135.779569892473)
+Code 0xe507 -> 十 (Error: 12874.919791666667)
+Code 0xe508 -> 小 (Error: 517.7398543184183)
+Code 0xe509 -> 今 (Error: 12124.772916666667)
+Code 0xe50a -> 一 (Error: 10146.9625)
+Code 0xe50b -> 想 (Error: 11358.891397849462)
+Code 0xe50c -> 化 (Error: 10368.563508064517)
+Code 0xe50d -> 人 (Error: 10507.170967741935)
+Code 0xe50e -> 分 (Error: 7036.190524193548)
+Code 0xe50f -> 主 (Error: 4215.794252873563)
+Code 0xe510 -> 口 (Error: 987.1585185185185)
+Code 0xe511 -> 可 (Error: 9888.355952380953)
+Code 0xe512 -> 好 (Error: 12792.853125)
+Code 0xe513 -> 望 (Error: 4322.84)
+Code 0xe514 -> 决 (Error: 10264.751041666666)
+Code 0xe515 -> 西 (Error: 7781.275862068966)
+Code 0xe516 -> 见 (Error: 12063.58111111111)
+Code 0xe517 -> 种 (Error: 4611.552419354839)
+Code 0xe518 -> 来 (Error: 13661.442708333334)
+Code 0xe519 -> 心 (Error: 10258.961693548386)
+Code 0xe51b -> 实 (Error: 10912.332589285714)
+Code 0xe51c -> 活 (Error: 13820.872916666667)
+Code 0xe51d -> 本 (Error: 12704.48046875)
+Code 0xe51e -> 这 (Error: 8360.658064516128)
+Code 0xe520 -> 一 (Error: 11504.202777777778)
+Code 0xe521 -> 我 (Error: 1421.1397849462367)
+Code 0xe522 -> 他 (Error: 13506.087701612903)
+Code 0xe523 -> 样 (Error: 13727.608870967742)
+Code 0xe524 -> 十 (Error: 10824.333333333334)
+Code 0xe525 -> 常 (Error: 12363.04525862069)
+Code 0xe526 -> 间 (Error: 9857.654377880184)
+Code 0xe527 -> 年 (Error: 6094.810416666666)
+Code 0xe528 -> 眼 (Error: 5832.006666666667)
+Code 0xe529 -> 无 (Error: 3999.0873563218393)
+Code 0xe52a -> 不 (Error: 1168.2505747126436)
+Code 0xe52b -> 今 (Error: 12923.740625)
+Code 0xe52c -> 先 (Error: 10988.213541666666)
+Code 0xe52d -> 给 (Error: 10922.980208333332)
+Code 0xe52e -> 一 (Error: 12778.928)
+Code 0xe52f -> 与 (Error: 13431.05)
+Code 0xe530 -> 法 (Error: 12701.232291666667)
+Code 0xe531 -> 下 (Error: 1280.5252873563218)
+Code 0xe532 -> 料 (Error: 12097.694556451614)
+Code 0xe533 -> 进 (Error: 14691.23111111111)
+Code 0xe534 -> 己 (Error: 1178.4060846560847)
+Code 0xe535 -> 会 (Error: 12262.508064516129)
+Code 0xe536 -> 一 (Error: 11364.581944444444)
+Code 0xe537 -> 它 (Error: 14077.90888888889)
+Code 0xe538 -> 定 (Error: 11082.705376344085)
+Code 0xe539 -> 口 (Error: 13450.946666666667)
+Code 0xe53a -> 见 (Error: 16296.641111111112)
+Code 0xe53b -> 因 (Error: 14737.154761904761)
+Code 0xe53c -> 上 (Error: 11076.185057471264)
+Code 0xe53d -> 前 (Error: 7205.26875)
+Code 0xe53e -> 事 (Error: 12106.920833333334)
+Code 0xe53f -> 一 (Error: 11886.327777777778)
+Code 0xe540 -> 十 (Error: 14285.022916666667)
+Code 0xe541 -> 日 (Error: 11111.076298701299)
+Code 0xe542 -> 人 (Error: 10006.78817204301)
+Code 0xe543 -> 个 (Error: 12292.602083333333)
+Code 0xe544 -> 十 (Error: 12390.990625)
+Code 0xe545 -> 起 (Error: 7419.90625)
+Code 0xe546 -> 价 (Error: 14731.95625)
+Code 0xe547 -> 本 (Error: 14332.462890625)
+Code 0xe548 -> 位 (Error: 10598.481789802288)
+Code 0xe549 -> 人 (Error: 12146.957730812013)
+Code 0xe54a -> 用 (Error: 1856.5603448275863)
+Code 0xe54b -> 方 (Error: 8904.052083333334)
+Code 0xe54c -> 干 (Error: 5381.374712643678)
+Code 0xe54d -> 点 (Error: 10703.479569892474)
+Code 0xe54e -> 行 (Error: 14292.12802419355)
+Code 0xe54f -> 理 (Error: 2638.5809523809526)
+Code 0xe550 -> 便 (Error: 1454.665972944849)
+Code 0xe551 -> 四 (Error: 5111.509259259259)
+Code 0xe552 -> 数 (Error: 10581.568548387097)
+Code 0xe553 -> 们 (Error: 14045.702586206897)
+Code 0xe554 -> 中 (Error: 5956.210336538462)
+Code 0xe555 -> 一 (Error: 10373.998666666666)
+Code 0xe556 -> 人 (Error: 12480.967741935483)
+Code 0xe557 -> 作 (Error: 11008.129032258064)
+Code 0xe558 -> 个 (Error: 11796.308333333332)
+Code 0xe559 -> 为 (Error: 13047.65625)
+Code 0xe55a -> 们 (Error: 2354.084051724138)
+Code 0xe55b -> 还 (Error: 12992.546370967742)
+Decryption Map:
+0xe3e8:十
+0xe3e9:在
+0xe3ea:主
+0xe3eb:行
+0xe3ec:家
+0xe3ed:军
+0xe3ee:然
+0xe3ef:十
+0xe3f0:地
+0xe3f1:个
+0xe3f2:要
+0xe3f3:一
+0xe3f4:个
+0xe3f5:和
+0xe3f7:一
+0xe3f8:到
+0xe3f9:还
+0xe3fa:一
+0xe3fb:现
+0xe3fc:从
+0xe3fd:文
+0xe400:此
+0xe401:中
+0xe402:月
+0xe403:一
+0xe404:出
+0xe405:战
+0xe406:工
+0xe407:根
+0xe408:十
+0xe409:界
+0xe40a:高
+0xe40b:先
+0xe40c:且
+0xe40d:一
+0xe40e:都
+0xe40f:平
+0xe410:义
+0xe411:作
+0xe412:人
+0xe413:十
+0xe414:行
+0xe415:其
+0xe416:一
+0xe417:那
+0xe418:出
+0xe41a:会
+0xe41b:文
+0xe41c:些
+0xe41d:十
+0xe41e:是
+0xe41f:十
+0xe420:十
+0xe421:学
+0xe422:气
+0xe423:大
+0xe424:发
+0xe425:两
+0xe426:命
+0xe427:全
+0xe428:后
+0xe429:十
+0xe42a:性
+0xe42b:便
+0xe42c:报
+0xe42d:一
+0xe42e:它
+0xe42f:十
+0xe430:流
+0xe431:而
+0xe432:想
+0xe433:年
+0xe434:出
+0xe435:公
+0xe436:了
+0xe437:常
+0xe438:以
+0xe439:活
+0xe43a:可
+0xe43b:活
+0xe43c:先
+0xe43d:一
+0xe43e:一
+0xe43f:时
+0xe440:行
+0xe441:队
+0xe442:上
+0xe443:十
+0xe444:最
+0xe445:业
+0xe446:价
+0xe447:决
+0xe448:一
+0xe449:个
+0xe44a:说
+0xe44b:十
+0xe44c:位
+0xe44d:里
+0xe44e:安
+0xe44f:行
+0xe450:外
+0xe451:一
+0xe452:十
+0xe453:作
+0xe454:从
+0xe455:一
+0xe456:报
+0xe457:从
+0xe458:面
+0xe459:道
+0xe45a:一
+0xe45c:点
+0xe45d:地
+0xe45e:直
+0xe45f:一
+0xe460:好
+0xe461:价
+0xe462:十
+0xe463:而
+0xe464:一
+0xe465:把
+0xe466:一
+0xe467:同
+0xe468:十
+0xe469:机
+0xe46a:没
+0xe46b:去
+0xe46c:电
+0xe46d:十
+0xe46e:便
+0xe46f:所
+0xe470:一
+0xe471:力
+0xe472:人
+0xe473:去
+0xe474:开
+0xe475:日
+0xe476:政
+0xe477:去
+0xe478:但
+0xe479:第
+0xe47a:命
+0xe47b:便
+0xe47c:作
+0xe47d:上
+0xe47e:位
+0xe47f:作
+0xe480:有
+0xe481:法
+0xe482:一
+0xe483:点
+0xe484:应
+0xe485:位
+0xe486:和
+0xe487:作
+0xe488:十
+0xe489:身
+0xe48a:国
+0xe48b:间
+0xe48c:一
+0xe48d:文
+0xe48e:他
+0xe48f:个
+0xe490:小
+0xe491:义
+0xe492:个
+0xe493:小
+0xe494:十
+0xe495:十
+0xe496:一
+0xe497:个
+0xe498:法
+0xe499:养
+0xe49a:对
+0xe49b:所
+0xe49c:主
+0xe49d:活
+0xe49e:因
+0xe49f:今
+0xe4a0:到
+0xe4a1:个
+0xe4a2:从
+0xe4a3:一
+0xe4a4:和
+0xe4a5:一
+0xe4a6:内
+0xe4a7:因
+0xe4a8:点
+0xe4a9:一
+0xe4aa:三
+0xe4ab:定
+0xe4ac:十
+0xe4ad:十
+0xe4ae:十
+0xe4af:干
+0xe4b0:成
+0xe4b1:去
+0xe4b2:向
+0xe4b3:便
+0xe4b4:阶
+0xe4b5:无
+0xe4b7:得
+0xe4b8:合
+0xe4b9:并
+0xe4ba:本
+0xe4bb:十
+0xe4bc:进
+0xe4bd:上
+0xe4be:一
+0xe4bf:业
+0xe4c0:行
+0xe4c1:一
+0xe4c2:人
+0xe4c3:就
+0xe4c4:等
+0xe4c5:去
+0xe4c6:无
+0xe4c7:本
+0xe4c8:体
+0xe4c9:作
+0xe4ca:还
+0xe4cb:个
+0xe4cc:定
+0xe4cd:如
+0xe4ce:多
+0xe4cf:一
+0xe4d0:十
+0xe4d1:给
+0xe4d2:使
+0xe4d3:样
+0xe4d5:最
+0xe4d6:会
+0xe4d7:部
+0xe4d9:见
+0xe4da:养
+0xe4db:命
+0xe4dc:队
+0xe4dd:行
+0xe4de:一
+0xe4df:十
+0xe4e0:果
+0xe4e1:动
+0xe4e2:十
+0xe4e3:一
+0xe4e4:义
+0xe4e5:见
+0xe4e6:法
+0xe4e7:自
+0xe4e8:跳
+0xe4e9:成
+0xe4ea:公
+0xe4eb:天
+0xe4ec:应
+0xe4ed:于
+0xe4ee:公
+0xe4ef:其
+0xe4f0:发
+0xe4f1:位
+0xe4f2:见
+0xe4f3:的
+0xe4f4:入
+0xe4f5:小
+0xe4f6:人
+0xe4f7:机
+0xe4f8:进
+0xe4f9:心
+0xe4fa:来
+0xe4fb:个
+0xe4fc:时
+0xe4fd:力
+0xe4fe:多
+0xe4ff:开
+0xe500:己
+0xe501:先
+0xe502:十
+0xe503:用
+0xe504:由
+0xe505:报
+0xe506:界
+0xe507:十
+0xe508:小
+0xe509:今
+0xe50a:一
+0xe50b:想
+0xe50c:化
+0xe50d:人
+0xe50e:分
+0xe50f:主
+0xe510:口
+0xe511:可
+0xe512:好
+0xe513:望
+0xe514:决
+0xe515:西
+0xe516:见
+0xe517:种
+0xe518:来
+0xe519:心
+0xe51b:实
+0xe51c:活
+0xe51d:本
+0xe51e:这
+0xe520:一
+0xe521:我
+0xe522:他
+0xe523:样
+0xe524:十
+0xe525:常
+0xe526:间
+0xe527:年
+0xe528:眼
+0xe529:无
+0xe52a:不
+0xe52b:今
+0xe52c:先
+0xe52d:给
+0xe52e:一
+0xe52f:与
+0xe530:法
+0xe531:下
+0xe532:料
+0xe533:进
+0xe534:己
+0xe535:会
+0xe536:一
+0xe537:它
+0xe538:定
+0xe539:口
+0xe53a:见
+0xe53b:因
+0xe53c:上
+0xe53d:前
+0xe53e:事
+0xe53f:一
+0xe540:十
+0xe541:日
+0xe542:人
+0xe543:个
+0xe544:十
+0xe545:起
+0xe546:价
+0xe547:本
+0xe548:位
+0xe549:人
+0xe54a:用
+0xe54b:方
+0xe54c:干
+0xe54d:点
+0xe54e:行
+0xe54f:理
+0xe550:便
+0xe551:四
+0xe552:数
+0xe553:们
+0xe554:中
+0xe555:一
+0xe556:人
+0xe557:作
+0xe558:个
+0xe559:为
+0xe55a:们
+0xe55b:还

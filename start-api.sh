@@ -5,5 +5,6 @@ export DB_USER=postgres
 export DB_PASSWORD=""
 export DB_NAME=xupu
 export JWT_SECRET=test-secret
+export PORT=80
 
-./api
+./bin/api

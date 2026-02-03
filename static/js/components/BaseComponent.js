@@ -46,10 +46,18 @@ export default class BaseComponent {
     }
 
     /**
-     * 更新组件
+     * 更新组件（不触发 onMounted，避免无限循环）
      */
     update() {
-        this.mount();
+        if (!this.container) {
+            console.error('Container not found');
+            return;
+        }
+
+        this.removeAllEventListeners();
+        const html = this.render();
+        this.container.innerHTML = html;
+        this.bindEvents();
     }
 
     /**

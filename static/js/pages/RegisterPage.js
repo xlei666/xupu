@@ -2,6 +2,7 @@
 
 import BaseComponent from '../components/BaseComponent.js';
 import { authAPI } from '../api.js';
+import { userActions } from '../store.js';
 import { showToast, validateForm } from '../utils.js';
 import router from '../router.js';
 
@@ -116,10 +117,17 @@ export default class RegisterPage extends BaseComponent {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>注册中...';
 
-            await authAPI.register({ username, email, password });
+            const response = await authAPI.register({ username, email, password });
 
-            showToast('注册成功，请登录', 'success');
-            router.navigate('/login');
+            if (response.success && response.data?.tokens?.access_token) {
+                // 注册成功后自动登录
+                userActions.login(response.data.user, response.data.tokens.access_token);
+                showToast('注册成功', 'success');
+                router.navigate('/dashboard');
+            } else {
+                showToast('注册成功，请登录', 'success');
+                router.navigate('/login');
+            }
         } catch (error) {
             console.error('注册错误:', error);
             showToast(error.message || '注册失败，请稍后重试', 'error');

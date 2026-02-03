@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Important: Hide Referrer to allow hotlinking images from ByteDance CDN -->
+    <meta name="referrer" content="no-referrer">
+    <title>番茄小说排行榜测试</title>
+    <style>
+        :root {
+            --primary-color: #ff3b30;
+            --bg-color: #f5f5f7;
+            --card-bg: #ffffff;
+            --text-main: #1d1d1f;
+            --text-secondary: #86868b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+        }
+
+        p {
+            color: var(--text-secondary);
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 8px 20px;
+            background-color: white;
+            border: 1px solid #d2d2d7;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(255, 59, 48, 0.25);
+            font-weight: 600;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background-color: #e5e5e7;
+            border-color: #b0b0b5;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-cover-container {
+            position: relative;
+            width: 100%;
+            height: 360px;
+            background-color: #eee;
+            overflow: hidden;
+        }
+
+        .card-cover {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .card:hover .card-cover {
+            transform: scale(1.03);
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 1rem;
+            backdrop-filter: blur(4px);
+            z-index: 2;
+        }
+
+        .rank-badge.top-3 {
+            background: linear-gradient(135deg, #ffcc00, #ff9500);
+            color: white;
+            box-shadow: 0 2px 5px rgba(255, 149, 0, 0.3);
+        }
+
+        .card-content {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 6px 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            color: #111;
+        }
+
+        .card-meta {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .score {
+            color: #ff9500;
+            font-weight: 700;
+            background: #fff8e6;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .card-desc {
+            font-size: 0.85rem;
+            color: #555;
+            line-height: 1.45;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex-grow: 1;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            display: none;
+        }
+
+        .error {
+            text-align: center;
+            color: white;
+            display: none;
+            padding: 15px;
+            background: #ff3b30;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .close-btn {
+            background: #f5f5f5;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        /* 书籍详情 */
+        .book-detail {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .book-detail img {
+            width: 150px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .book-info h3 {
+            margin: 0 0 10px 0;
+        }
+
+        .book-info p {
+            margin: 5px 0;
+            font-size: 0.95rem;
+        }
+
+        /* 章节列表 */
+        .chapter-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+
+        .chapter-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chapter-item:hover {
+            background: #f9f9f9;
+        }
+
+        .chapter-item:last-child {
+            border-bottom: none;
+        }
+
+        .chapter-title {
+            font-size: 0.95rem;
+            color: #333;
+        }
+
+        .chapter-meta {
+            font-size: 0.8rem;
+            color: #999;
+        }
+
+        /* 阅读器 */
+        .reader-content {
+            line-height: 1.9;
+            font-size: 1.1rem;
+            white-space: pre-wrap;
+            padding: 20px 0;
+        }
+
+        .reader-nav {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .reader-nav button {
+            padding: 10px 30px;
+            border: none;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .reader-nav button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .reader-nav button:hover:not(:disabled) {
+            background: #e03328;
+        }
+
+        .back-btn {
+            background: #f5f5f5 !important;
+            color: #333 !important;
+        }
+
+        .back-btn:hover:not(:disabled) {
+            background: #e5e5e5 !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>番茄小说实时榜单</h1>
+            <p>基于 Mobile API v2 • 点击书籍查看详情和阅读</p>
+        </header>
+
+        <div class="tabs" id="tabs"></div>
+
+        <div id="loading" class="loading">
+            <div style="margin-bottom: 10px;">⏳</div>
+            <div>正在从番茄服务器获取数据...</div>
+        </div>
+        <div id="error" class="error"></div>
+        <div id="grid" class="grid"></div>
+    </div>
+
+    <!-- 书籍详情模态框 -->
+    <div id="bookModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">书籍详情</h2>
+                <button class="close-btn" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- 动态内容 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 阅读器模态框 -->
+    <div id="readerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="readerTitle">阅读</h2>
+                <button class="close-btn" onclick="closeReader()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="readerContent" class="reader-content">加载中...</div>
+            </div>
+            <div class="reader-nav">
+                <button class="back-btn" onclick="backToChapters()">目录</button>
+                <button id="prevChapter" onclick="prevChapter()">上一章</button>
+                <button id="nextChapter" onclick="nextChapter()">下一章</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const NO_COVER_URI = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZWVlZWVlIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiBmaWxsPSIjOTk5OTk5IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7ml6DlsIHZopw8L3RleHQ+PC9zdmc+";
+
+        const CATEGORIES = [
+            { name: "全站热榜", id: "15" },
+            { name: "黑马潜力", id: "13" },
+            { name: "男生精选", id: "16" },
+            { name: "女生精选", id: "12" },
+            { name: "完结精品", id: "18" },
+            { name: "连载新书", id: "1" },
+            { name: "科幻悬疑", id: "8" },
+            { name: "东方仙侠", id: "1140" }
+        ];
+
+        let currentCatId = "15";
+        let currentBookId = null;
+        let currentChapterId = null;
+        let currentChapters = [];
+        let currentPrevChapter = null;
+        let currentNextChapter = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTabs();
+            fetchData(currentCatId);
+        });
+
+        function renderTabs() {
+            const tabsContainer = document.getElementById('tabs');
+            tabsContainer.innerHTML = CATEGORIES.map(cat => `
+            <button class="tab-btn ${cat.id === currentCatId ? 'active' : ''}" 
+                    onclick="switchTab('${cat.id}')">
+                ${cat.name}
+            </button>
+        `).join('');
+        }
+
+        function switchTab(id) {
+            if (currentCatId === id) return;
+            currentCatId = id;
+            renderTabs();
+            fetchData(id);
+        }
+
+        async function fetchData(catId) {
+            const grid = document.getElementById('grid');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+
+            grid.innerHTML = '';
+            error.style.display = 'none';
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch(`/api/v1/external/ranks/fanqie?category_id=${catId}&t=${new Date().getTime()}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP Status ${response.status}`);
+                }
+                const data = await response.json();
+
+                if (data.success && data.data.books && data.data.books.length > 0) {
+                    renderBooks(data.data.books);
+                } else {
+                    grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #888;">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">📭</div>
+                        <h3>该分类暂无数据</h3>
+                        <p>API 可能未返回内容，请尝试其他分类。</p>
+                    </div>`;
+                }
+            } catch (e) {
+                console.error(e);
+                error.innerHTML = `<strong>加载失败</strong><br>${e.message}`;
+                error.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function renderBooks(books) {
+            const grid = document.getElementById('grid');
+
+            books.forEach((book, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => openBook(book.bookId);
+
+                let thumb = book.thumbUri;
+                if (thumb && !thumb.startsWith('http')) {
+                    if (thumb.includes('novel-pic') || thumb.includes('novel-images')) {
+                        thumb = 'https://p6-tt.bytecdn.cn/origin/' + thumb;
+                    }
+                }
+
+                const rankClass = index < 3 ? 'top-3' : '';
+
+                card.innerHTML = `
+                <div class="card-cover-container">
+                    <span class="rank-badge ${rankClass}">TOP ${index + 1}</span>
+                    <img src="${thumb}" alt="${book.bookName}" class="card-cover" loading="lazy" 
+                         onerror="this.onerror=null;this.src='${NO_COVER_URI}'">
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title" title="${book.bookName}">${book.bookName}</h3>
+                    <div class="card-meta">
+                        <span>${book.author}</span>
+                        <span class="score">${book.score.toFixed(1)}分</span>
+                    </div>
+                    <div class="card-desc" title="${book.description}">${book.description || "暂无简介"}</div>
+                </div>
+            `;
+                grid.appendChild(card);
+            });
+        }
+
+        async function openBook(bookId) {
+            currentBookId = bookId;
+            document.getElementById('bookModal').classList.add('active');
+            document.getElementById('modalBody').innerHTML = '<div style="text-align:center;padding:40px;">加载中...</div>';
+
+            try {
+                // 并行获取书籍详情和章节列表
+                const [detailRes, chaptersRes] = await Promise.all([
+                    fetch(`/api/v1/external/fanqie/books/${bookId}`),
+                    fetch(`/api/v1/external/fanqie/books/${bookId}/chapters`)
+                ]);
+
+                const detailData = await detailRes.json();
+                const chaptersData = await chaptersRes.json();
+
+                if (!detailData.success) {
+                    throw new Error(detailData.error?.message || '获取书籍详情失败');
+                }
+
+                const book = detailData.data;
+                currentChapters = chaptersData.success ? chaptersData.data.chapters : [];
+
+                let thumb = book.thumbUri;
+                if (thumb && !thumb.startsWith('http')) {
+                    thumb = 'https://p6-tt.bytecdn.cn/origin/' + thumb;
+                }
+
+                const statusText = book.creationStatus === 2 ? '已完结' : '连载中';
+
+                document.getElementById('modalTitle').textContent = book.bookName;
+                document.getElementById('modalBody').innerHTML = `
+                    <div class="book-detail">
+                        <img src="${thumb}" alt="${book.bookName}" onerror="this.onerror=null;this.src='${NO_COVER_URI}'">
+                        <div class="book-info">
+                            <h3>${book.bookName}</h3>
+                            <p><strong>作者：</strong>${book.author}</p>
+                            <p><strong>分类：</strong>${book.category}</p>
+                            <p><strong>字数：</strong>${(book.wordCount / 10000).toFixed(1)} 万字</p>
+                            <p><strong>章节：</strong>${book.chapterCount} 章</p>
+                            <p><strong>状态：</strong>${statusText}</p>
+                            <p><strong>最新：</strong>${book.lastChapter}</p>
+                        </div>
+                    </div>
+                    <h4>简介</h4>
+                    <p style="line-height:1.7;color:#555;">${book.description || '暂无简介'}</p>
+                    <h4>章节目录 (${currentChapters.length} 章)</h4>
+                    <div class="chapter-list">
+                        ${currentChapters.slice(0, 50).map((ch, i) => `
+                            <div class="chapter-item" onclick="readChapter('${ch.chapterId}')">
+                                <span class="chapter-title">${ch.order}. ${ch.title}</span>
+                                <span class="chapter-meta">${ch.wordCount}字</span>
+                            </div>
+                        `).join('')}
+                        ${currentChapters.length > 50 ? '<div style="padding:12px;text-align:center;color:#999;">仅显示前50章</div>' : ''}
+                    </div>
+                `;
+            } catch (e) {
+                document.getElementById('modalBody').innerHTML = `<div style="text-align:center;padding:40px;color:#ff3b30;">加载失败：${e.message}</div>`;
+            }
+        }
+
+        async function readChapter(chapterId) {
+            currentChapterId = chapterId;
+            closeModal();
+            document.getElementById('readerModal').classList.add('active');
+            document.getElementById('readerContent').textContent = '加载中...';
+            document.getElementById('prevChapter').disabled = true;
+            document.getElementById('nextChapter').disabled = true;
+
+            try {
+                const response = await fetch(`/api/v1/external/fanqie/chapters/${chapterId}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error?.message || '获取章节内容失败');
+                }
+
+                const chapter = data.data;
+                document.getElementById('readerTitle').textContent = chapter.title;
+                document.getElementById('readerContent').textContent = chapter.content;
+
+                currentPrevChapter = chapter.prevChapter;
+                currentNextChapter = chapter.nextChapter;
+
+                document.getElementById('prevChapter').disabled = !currentPrevChapter;
+                document.getElementById('nextChapter').disabled = !currentNextChapter;
+
+            } catch (e) {
+                document.getElementById('readerContent').textContent = `加载失败：${e.message}`;
+            }
+        }
+
+        function prevChapter() {
+            if (currentPrevChapter) {
+                readChapter(currentPrevChapter);
+            }
+        }
+
+        function nextChapter() {
+            if (currentNextChapter) {
+                readChapter(currentNextChapter);
+            }
+        }
+
+        function backToChapters() {
+            closeReader();
+            if (currentBookId) {
+                openBook(currentBookId);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('bookModal').classList.remove('active');
+        }
+
+        function closeReader() {
+            document.getElementById('readerModal').classList.remove('active');
+        }
+
+        // ESC 键关闭模态框
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                closeReader();
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -81,12 +81,23 @@ func main() {
 	characterHandler := handlers.NewCharacterHandler(db.Get())
 	synopsisHandler := handlers.NewSynopsisHandler(db.Get())
 	writerHandler := handlers.NewWriterHandler(db.Get())
+	externalRankHandler := handlers.NewExternalRankHandler()
 
 	// 注册路由
-	server.RegisterRoutes(projectHandler, worldHandler, narrativeHandler, exportHandler, authHandler, chapterHandler, narrativeNodeHandler, worldSettingHandler, characterHandler, synopsisHandler, writerHandler)
+	server.RegisterRoutes(projectHandler, worldHandler, narrativeHandler, exportHandler, authHandler, chapterHandler, narrativeNodeHandler, worldSettingHandler, characterHandler, synopsisHandler, writerHandler, externalRankHandler)
 
-	// 配置静态文件服务（从文件系统加载）
+	// 配置静态文件服务（从文件系统加载，禁用JS缓存便于开发）
+	server.Engine().Use(func(c *gin.Context) {
+		if len(c.Request.URL.Path) > 3 && c.Request.URL.Path[len(c.Request.URL.Path)-3:] == ".js" {
+			c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+			c.Header("Pragma", "no-cache")
+			c.Header("Expires", "0")
+		}
+		c.Next()
+	})
 	server.Engine().Static("/static", "./static")
+	// Allow accessing the test page from root for convenience
+	server.Engine().StaticFile("/fanqie_test.html", "./static/fanqie_test.html")
 
 	// SPA路由支持 - 所有未匹配的路由返回index.html
 	server.Engine().NoRoute(func(c *gin.Context) {

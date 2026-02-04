@@ -71,20 +71,20 @@ func (h *ProjectHandler) CreateProject(c *gin.Context) {
 		// 使用 orchestrator 创建完整的AI项目
 		// 构建创作参数
 		params := orchestrator.CreationParams{
-			UserID:      userID,
-			ProjectName: req.Name,
-			Description: req.Description,
-			WorldName:   req.Params.WorldName,
-			WorldType:   req.Params.WorldType,
-			WorldTheme:  req.Params.WorldTheme,
-			WorldScale:  req.Params.WorldScale,
-			WorldStyle:  req.Params.WorldStyle,
-			StoryType:   req.Params.StoryType,
-			StoryTheme:  req.Params.Theme,
-			Protagonist: req.Params.Protagonist,
-			StoryLength: req.Params.Length,
+			UserID:       userID,
+			ProjectName:  req.Name,
+			Description:  req.Description,
+			WorldName:    req.Params.WorldName,
+			WorldType:    req.Params.WorldType,
+			WorldTheme:   req.Params.WorldTheme,
+			WorldScale:   req.Params.WorldScale,
+			WorldStyle:   req.Params.WorldStyle,
+			StoryType:    req.Params.StoryType,
+			StoryTheme:   req.Params.Theme,
+			Protagonist:  req.Params.Protagonist,
+			StoryLength:  req.Params.Length,
 			ChapterCount: req.Params.ChapterCount,
-			Structure:   req.Params.Structure,
+			Structure:    req.Params.Structure,
 			Options: orchestrator.GenerationOptions{
 				SkipWorldBuild:      req.Params.Options.SkipWorldBuild,
 				ExistingWorldID:     req.Params.Options.ExistingWorldID,
@@ -180,9 +180,9 @@ func (h *ProjectHandler) ListProjects(c *gin.Context) {
 
 	c.JSON(http.StatusOK, successResponse(gin.H{
 		"projects": response,
-		"page":      1,
-		"pageSize":  len(filtered),
-		"total":     len(filtered),
+		"page":     1,
+		"pageSize": len(filtered),
+		"total":    len(filtered),
 	}))
 }
 
@@ -255,7 +255,7 @@ func (h *ProjectHandler) DeleteProject(c *gin.Context) {
 	// TODO: 级联删除相关数据（蓝图、场景等）
 
 	c.JSON(http.StatusOK, successResponse(gin.H{
-		"deleted_project_id": project.ID,
+		"deleted_project_id":   project.ID,
 		"deleted_project_name": project.Name,
 	}))
 }
@@ -287,7 +287,7 @@ func (h *ProjectHandler) GenerateChapter(c *gin.Context) {
 
 	// TODO: 实现章节生成逻辑
 	c.JSON(http.StatusOK, successResponse(gin.H{
-		"message": "章节生成功能开发中",
+		"message":    "章节生成功能开发中",
 		"project_id": id,
 	}))
 }
@@ -313,8 +313,8 @@ func (h *ProjectHandler) Intervene(c *gin.Context) {
 
 	// TODO: 实现干预逻辑
 	c.JSON(http.StatusOK, successResponse(gin.H{
-		"message": "干预功能开发中",
-		"project_id": id,
+		"message":           "干预功能开发中",
+		"project_id":        id,
 		"intervention_type": req.Type,
 	}))
 }

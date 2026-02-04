@@ -5,6 +5,7 @@ export DB_USER=postgres
 export DB_PASSWORD=""
 export DB_NAME=xupu
 export JWT_SECRET=test-secret
-export PORT=80
+export FANQIE_COOKIE=""
+export PORT=8080
 
-./bin/api
+./bin/xupu-api

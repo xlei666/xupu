@@ -88,6 +88,7 @@ func (s *Server) RegisterRoutes(
 		projects.Use(authHandler.AuthMiddleware()) // 应用认证中间件
 		{
 			projects.POST("", projectHandler.CreateProject)
+			projects.POST("/import", projectHandler.ImportProject)
 			projects.GET("", projectHandler.ListProjects)
 			projects.GET("/:projectId", projectHandler.GetProject)
 			projects.DELETE("/:projectId", projectHandler.DeleteProject)

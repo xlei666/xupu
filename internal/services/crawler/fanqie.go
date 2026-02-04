@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -299,9 +300,17 @@ func (s *FanqieService) GetChapterContent(chapterID string) (*models.FanqieChapt
 	if err != nil {
 		return nil, fmt.Errorf("创建请求失败: %w", err)
 	}
+	// 增加Web端伪装
 	req.Header.Set("User-Agent", WebUserAgent)
-	req.Header.Set("Accept", "text/html,application/xhtml+xml")
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
 	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9")
+	req.Header.Set("Referer", reqURL)
+	req.Header.Set("Cache-Control", "no-cache")
+
+	// 注入Cookie (如果有)
+	if cookie := os.Getenv("FANQIE_COOKIE"); cookie != "" {
+		req.Header.Set("Cookie", cookie)
+	}
 
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -323,9 +332,13 @@ func (s *FanqieService) GetChapterContent(chapterID string) (*models.FanqieChapt
 		return nil, fmt.Errorf("无法找到页面状态数据")
 	}
 
+	// 清理JSON字符串：将undefined替换为null，否则Go无法解析
+	jsonStr := matches[1]
+	jsonStr = strings.ReplaceAll(jsonStr, "undefined", "null")
+
 	// 解析JSON
 	var state map[string]interface{}
-	if err := json.Unmarshal([]byte(matches[1]), &state); err != nil {
+	if err := json.Unmarshal([]byte(jsonStr), &state); err != nil {
 		return nil, fmt.Errorf("解析状态JSON失败: %w", err)
 	}
 
@@ -340,7 +353,12 @@ func (s *FanqieService) GetChapterContent(chapterID string) (*models.FanqieChapt
 		return nil, fmt.Errorf("无法找到chapterData数据")
 	}
 
-	content, _ := chapterData["content"].(string)
+	content, ok := chapterData["content"].(string)
+	if !ok || content == "" {
+		// 检查是否有错误信息或其他提示
+		return nil, fmt.Errorf("章节内容为空 (可能是反爬限制)")
+	}
+
 	title, _ := chapterData["title"].(string)
 	bookID, _ := chapterData["bookId"].(string)
 	prevChapter, _ := chapterData["preItemId"].(string)

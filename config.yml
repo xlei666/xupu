@@ -1,17 +1,17 @@
 # 是否使用老版本命令行界面
 old_cli: false
 # 最大并发线程数
-max_workers: 1
+max_workers: 4
 # 请求超时时间（秒）
-request_timeout: 15
+request_timeout: 30
 # 最大重试次数
-max_retries: 3
+max_retries: 5
 # 最大冷却时间, 单位ms
-max_wait_time: 1200
+max_wait_time: 1500
 # 最小冷却时间, 单位ms
-min_wait_time: 1000
+min_wait_time: 500
 # 最小连接超时时间
-min_connect_timeout: 3.05
+min_connect_timeout: 5.0
 # 保存小说格式, 可选: [txt, epub]
 novel_format: txt
 # 是否以散装形式保存小说

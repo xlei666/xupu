@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -17,6 +20,9 @@ import (
 // @Accept multipart/form-data
 // @Produce json
 // @Param file formData file true "TXT文件"
+// @Param author formData string false "作者"
+// @Param description formData string false "简介"
+// @Param cover formData file false "封面图片"
 // @Success 200 {object} APIResponse
 // @Router /api/v1/projects/import [post]
 func (h *ProjectHandler) ImportProject(c *gin.Context) {
@@ -59,12 +65,41 @@ func (h *ProjectHandler) ImportProject(c *gin.Context) {
 	// 解析项目名称（文件名去掉后缀）
 	projectName := strings.TrimSuffix(file.Filename, ".txt")
 
+	// 获取其他元数据
+	author := c.PostForm("author")
+	description := c.PostForm("description")
+
+	// 处理封面上传
+	var coverURL string
+	coverFile, err := c.FormFile("cover")
+	if err == nil {
+		// 确保目录存在
+		uploadDir := "static/uploads/covers"
+		if err := os.MkdirAll(uploadDir, 0755); err != nil {
+			// 忽略错误，继续
+		}
+
+		// 生成唯一文件名
+		ext := filepath.Ext(coverFile.Filename)
+		if ext == "" {
+			ext = ".jpg"
+		}
+		coverFilename := fmt.Sprintf("cover_%s%s", db.GenerateID("img"), ext)
+		coverPath := filepath.Join(uploadDir, coverFilename)
+
+		if err := c.SaveUploadedFile(coverFile, coverPath); err == nil {
+			coverURL = "/static/uploads/covers/" + coverFilename
+		}
+	}
+
 	// 创建项目
 	project := &models.Project{
 		ID:          db.GenerateID("project"),
 		UserID:      userID,
 		Name:        projectName,
-		Description: "导入的本地小说",
+		Author:      author,
+		Description: description,
+		CoverURL:    coverURL,
 		Mode:        models.OrchestrationMode("local_import"),
 		Status:      models.StatusCompleted, // 导入的项目直接标记为完成
 		Progress:    100,

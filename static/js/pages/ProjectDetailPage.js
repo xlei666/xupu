@@ -229,10 +229,10 @@ export default class ProjectDetailPage extends BaseComponent {
 
         // 快速操作按钮
         const buttons = {
-            worldSettingsBtn: () => showToast('世界设定功能开发中', 'info'),
+            worldSettingsBtn: () => router.navigate(`/project/${this.projectId}/director`),
             charactersBtn: () => showToast('角色管理功能开发中', 'info'),
-            narrativeBtn: () => showToast('叙事规划功能开发中', 'info'),
-            writerBtn: () => showToast('AI写作功能开发中', 'info'),
+            narrativeBtn: () => router.navigate(`/project/${this.projectId}/director`),
+            writerBtn: () => router.navigate(`/project/${this.projectId}/director`),
             settingsBtn: () => showToast('项目设置功能开发中', 'info')
         };
 

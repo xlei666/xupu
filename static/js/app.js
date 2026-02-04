@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage.js';
 import RegisterPage from './pages/RegisterPage.js';
 import DashboardPage from './pages/DashboardPage.js';
 import ProjectDetailPage from './pages/ProjectDetailPage.js';
+import DirectorPage from './pages/DirectorPage.js';
 
 // 初始化导航栏
 const navbar = new Navbar('#navbar');
@@ -65,6 +66,20 @@ router.registerRoutes([
             navbar.mount();
             const projectId = params._pathParts[1];
             const page = new ProjectDetailPage('#app', projectId);
+            page.mount();
+        }
+    },
+    {
+        path: '/project/:id/director',
+        meta: { requiresAuth: true },
+        handler: async (params) => {
+            // Director mode handles its own layout, maybe unmount navbar?
+            // The demo has its own top bar.
+            navbar.unmount();
+            document.querySelector('#navbar').innerHTML = '';
+
+            const projectId = params._pathParts[1];
+            const page = new DirectorPage('#app', projectId); // Use #app directly
             page.mount();
         }
     },

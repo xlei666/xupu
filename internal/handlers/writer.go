@@ -16,8 +16,8 @@ import (
 
 // WriterHandler 写作器处理器
 type WriterHandler struct {
-	db   db.Database
-	cfg  *config.Config
+	db  db.Database
+	cfg *config.Config
 }
 
 // NewWriterHandler 创建写作器处理器
@@ -34,13 +34,16 @@ func NewWriterHandler(database db.Database) *WriterHandler {
 }
 
 // ContinueChapterRequest 继续章节请求
+// ContinueChapterRequest 继续章节请求
 type ContinueChapterRequest struct {
-	Length           string `json:"length"`            // short, medium, long
-	Style            string `json:"style"`             // balanced, creative, formal
-	IncludeDialogue  bool   `json:"include_dialogue"`
-	IncludeAction    bool   `json:"include_action"`
-	IncludeDescription bool `json:"include_description"`
-	ContinueCount    int    `json:"continue_count"`    // 继续次数
+	Length             string `json:"length"` // short, medium, long
+	Style              string `json:"style"`  // balanced, creative, formal
+	IncludeDialogue    bool   `json:"include_dialogue"`
+	IncludeAction      bool   `json:"include_action"`
+	IncludeDescription bool   `json:"include_description"`
+	ContinueCount      int    `json:"continue_count"` // 继续次数
+	Instructions       string `json:"instructions"`   // 用户指令
+	WordCount          int    `json:"word_count"`     // 目标字数
 }
 
 // ContinueChapter AI继续章节内容
@@ -123,13 +126,13 @@ func (h *WriterHandler) ContinueChapter(c *gin.Context) {
 
 	c.JSON(http.StatusOK, successResponse(gin.H{
 		"chapter": gin.H{
-			"id":            chapter.ID,
-			"chapter_num":   chapter.ChapterNum,
-			"title":         chapter.Title,
-			"content":       chapter.Content,
-			"word_count":    chapter.WordCount,
-			"ai_word_count": chapter.AIWordCount,
-			"generated":     generatedText,
+			"id":               chapter.ID,
+			"chapter_num":      chapter.ChapterNum,
+			"title":            chapter.Title,
+			"content":          chapter.Content,
+			"word_count":       chapter.WordCount,
+			"ai_word_count":    chapter.AIWordCount,
+			"generated":        generatedText,
 			"generated_length": utf8.RuneCountInString(generatedText),
 		},
 	}))
@@ -283,12 +286,18 @@ func (h *WriterHandler) buildContinuationPrompt(
 
 	// 生成要求
 	prompt.WriteString("## 生成要求\n")
+
+	// 字数处理
 	targetLength := 800
-	switch req.Length {
-	case "short":
-		targetLength = 500
-	case "long":
-		targetLength = 1500
+	if req.WordCount > 0 {
+		targetLength = req.WordCount
+	} else {
+		switch req.Length {
+		case "short":
+			targetLength = 500
+		case "long":
+			targetLength = 1500
+		}
 	}
 	prompt.WriteString(fmt.Sprintf("- 目标字数: 约%d字\n", targetLength))
 
@@ -309,6 +318,11 @@ func (h *WriterHandler) buildContinuationPrompt(
 	}
 	if req.IncludeDescription {
 		prompt.WriteString("- 包含环境/心理描写\n")
+	}
+
+	// 用户额外指令
+	if req.Instructions != "" {
+		prompt.WriteString(fmt.Sprintf("- 特别指令: %s\n", req.Instructions))
 	}
 
 	prompt.WriteString("\n")
@@ -501,16 +515,16 @@ func (h *WriterHandler) generateSceneInstructions(
 		for _, s := range scenesData {
 			if sceneMap, ok := s.(map[string]interface{}); ok {
 				scene := models.SceneInstruction{
-					Scene:        sceneNum,
-					Sequence:     parseIntField(sceneMap, "sequence", sceneNum),
-					Purpose:      parseStringField(sceneMap, "purpose", ""),
-					Location:     parseStringField(sceneMap, "location", ""),
-					POVCharacter: parseStringField(sceneMap, "pov_character", ""),
-					Mood:         parseStringField(sceneMap, "mood", ""),
-					Action:       parseStringField(sceneMap, "action", ""),
-					DialogueFocus: parseStringField(sceneMap, "dialogue_focus", ""),
+					Scene:          sceneNum,
+					Sequence:       parseIntField(sceneMap, "sequence", sceneNum),
+					Purpose:        parseStringField(sceneMap, "purpose", ""),
+					Location:       parseStringField(sceneMap, "location", ""),
+					POVCharacter:   parseStringField(sceneMap, "pov_character", ""),
+					Mood:           parseStringField(sceneMap, "mood", ""),
+					Action:         parseStringField(sceneMap, "action", ""),
+					DialogueFocus:  parseStringField(sceneMap, "dialogue_focus", ""),
 					ExpectedLength: parseIntField(sceneMap, "expected_length", 800),
-					Status:       "pending",
+					Status:         "pending",
 				}
 				if chars, ok := sceneMap["characters"].([]interface{}); ok {
 					for _, c := range chars {

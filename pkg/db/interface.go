@@ -68,6 +68,7 @@ type Database interface {
 	// Chapter
 	SaveChapter(chapter *models.Chapter) error
 	GetChapter(id string) (*models.Chapter, error)
+	GetChapterByNum(projectID string, chapterNum int) (*models.Chapter, error)
 	ListChaptersByProject(projectID string) []*models.Chapter
 	DeleteChapter(id string) error
 
@@ -76,6 +77,19 @@ type Database interface {
 	GetUser(id string) (*models.User, error)
 	GetUserByEmail(email string) (*models.User, error)
 	GetUserByAPIKey(apiKey string) (*models.User, error)
+
+	// Admin / Config
+	GetSysConfigs() ([]models.SysConfig, error)
+	GetSysConfig(key string) (*models.SysConfig, error)
+	SaveSysConfig(config *models.SysConfig) error
+
+	GetPromptTemplates() ([]models.PromptTemplate, error)
+	GetPromptTemplate(key string) (*models.PromptTemplate, error)
+	SavePromptTemplate(prompt *models.PromptTemplate) error
+
+	GetNarrativeTemplates() ([]models.NarrativeTemplate, error)
+	GetNarrativeTemplate(id string) (*models.NarrativeTemplate, error)
+	SaveNarrativeTemplate(template *models.NarrativeTemplate) error
 
 	// Utilities
 	Stats() map[string]int

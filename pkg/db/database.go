@@ -19,16 +19,16 @@ type MemoryDatabase struct {
 	mu sync.RWMutex
 
 	// 数据存储
-	worlds     map[string]*models.WorldSetting
-	characters map[string]*models.Character
-	synopses  map[string]*models.Synopsis
-	projects   map[string]*models.Project
-	blueprints map[string]*models.NarrativeBlueprint
-	scenes     map[string]*models.SceneOutput
-	users      map[string]*models.User
-	narrativeNodes map[string]*models.NarrativeNode
+	worlds              map[string]*models.WorldSetting
+	characters          map[string]*models.Character
+	synopses            map[string]*models.Synopsis
+	projects            map[string]*models.Project
+	blueprints          map[string]*models.NarrativeBlueprint
+	scenes              map[string]*models.SceneOutput
+	users               map[string]*models.User
+	narrativeNodes      map[string]*models.NarrativeNode
 	nodeChapterMappings map[string]*models.NodeChapterMapping
-	chapters   map[string]*models.Chapter
+	chapters            map[string]*models.Chapter
 
 	// 配置
 	dataDir  string
@@ -44,7 +44,22 @@ var (
 // Get 获取数据库实例（单例）
 func Get() Database {
 	once.Do(func() {
-		defaultDB = NewMemory("data")
+		// 使用PostgreSQL
+		var err error
+		pgDB, err := NewPostgres(nil) // nil means use strict default config (which reads envs)
+		if err != nil {
+			// Fallback to memory or panic?
+			// Panic is better to ensure we know it failed
+			fmt.Printf("Initial DB connection failed: %v\n", err)
+			panic("failed to connect to database")
+		}
+
+		// 自动迁移
+		if err := pgDB.Migrate(); err != nil {
+			fmt.Printf("DB Migration failed: %v\n", err)
+		}
+
+		defaultDB = pgDB
 	})
 	return defaultDB
 }
@@ -52,17 +67,17 @@ func Get() Database {
 // NewMemory 创建新的内存数据库实例
 func NewMemory(dataDir string) Database {
 	db := &MemoryDatabase{
-		worlds:     make(map[string]*models.WorldSetting),
-		characters: make(map[string]*models.Character),
-		projects:   make(map[string]*models.Project),
-		blueprints: make(map[string]*models.NarrativeBlueprint),
-		scenes:     make(map[string]*models.SceneOutput),
-		users:      make(map[string]*models.User),
-		narrativeNodes: make(map[string]*models.NarrativeNode),
+		worlds:              make(map[string]*models.WorldSetting),
+		characters:          make(map[string]*models.Character),
+		projects:            make(map[string]*models.Project),
+		blueprints:          make(map[string]*models.NarrativeBlueprint),
+		scenes:              make(map[string]*models.SceneOutput),
+		users:               make(map[string]*models.User),
+		narrativeNodes:      make(map[string]*models.NarrativeNode),
 		nodeChapterMappings: make(map[string]*models.NodeChapterMapping),
-		chapters:   make(map[string]*models.Chapter),
-		dataDir:    dataDir,
-		autoSave:   true,
+		chapters:            make(map[string]*models.Chapter),
+		dataDir:             dataDir,
+		autoSave:            true,
 	}
 
 	// 确保数据目录存在
@@ -954,6 +969,19 @@ func (d *MemoryDatabase) GetChapter(id string) (*models.Chapter, error) {
 		return nil, ErrNotFound
 	}
 	return chapter, nil
+}
+
+// GetChapterByNum 根据章节号获取章节
+func (d *MemoryDatabase) GetChapterByNum(projectID string, chapterNum int) (*models.Chapter, error) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	for _, ch := range d.chapters {
+		if ch.ProjectID == projectID && ch.ChapterNum == chapterNum {
+			return ch, nil
+		}
+	}
+	return nil, ErrNotFound
 }
 
 // ListChaptersByProject 列出指定项目的所有章节

@@ -6,6 +6,6 @@ export DB_PASSWORD=""
 export DB_NAME=xupu
 export JWT_SECRET=test-secret
 export FANQIE_COOKIE=""
-export PORT=8080
+export PORT=80
 
 ./bin/xupu-api

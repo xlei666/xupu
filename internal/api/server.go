@@ -50,6 +50,7 @@ func (s *Server) RegisterRoutes(
 	synopsisHandler *handlers.SynopsisHandler,
 	writerHandler *handlers.WriterHandler,
 	externalRankHandler *handlers.ExternalRankHandler,
+	adminHandler *handlers.AdminHandler,
 ) {
 	// 同时创建任务处理器
 	taskHandler := handlers.NewTaskHandler()
@@ -97,6 +98,7 @@ func (s *Server) RegisterRoutes(
 			projects.POST("/:projectId/pause", projectHandler.PauseGeneration)
 			projects.POST("/:projectId/resume", projectHandler.ResumeGeneration)
 			projects.GET("/:projectId/progress", projectHandler.GetProgress)
+			projects.POST("/:projectId/blueprint/apply", narrativeHandler.ApplyBlueprint)
 
 			// 章节管理（使用 :projectId 作为项目ID）
 			projects.GET("/:projectId/chapters", chapterHandler.ListChapters)
@@ -120,7 +122,9 @@ func (s *Server) RegisterRoutes(
 			projects.GET("/:projectId/world-stages", worldSettingHandler.GetWorldStages)
 			projects.POST("/:projectId/world-stages", worldSettingHandler.SaveWorldStages)
 			projects.POST("/:projectId/world-stages/:stage/generate", worldSettingHandler.GenerateWorldStage)
-			projects.POST("/:projectId/world-stages/gacha", worldSettingHandler.GachaWorldSettings)
+
+			// 使用 world-gacha 避免与 :stage 路由冲突
+			projects.POST("/:projectId/world-gacha", worldSettingHandler.GachaWorldSettings)
 
 			// 角色设定管理
 			projects.POST("/:projectId/characters/gacha", characterHandler.GachaCharacters)
@@ -179,6 +183,25 @@ func (s *Server) RegisterRoutes(
 				fanqie.GET("/books/:bookId/chapters", externalRankHandler.GetFanqieChapterList)
 				fanqie.GET("/chapters/:chapterId", externalRankHandler.GetFanqieChapterContent)
 			}
+		}
+
+		// 管理后台
+		admin := v1.Group("/admin")
+		// admin.Use(authHandler.AdminMiddleware()) // TODO: 添加管理员认证
+		{
+			// 系统配置
+			admin.GET("/configs", adminHandler.GetConfigs)
+			admin.PUT("/configs/:key", adminHandler.UpdateConfig)
+
+			// 提示词管理
+			admin.GET("/prompts", adminHandler.GetPrompts)
+			admin.GET("/prompts/:key", adminHandler.GetPrompt)
+			admin.PUT("/prompts/:key", adminHandler.UpdatePrompt)
+			admin.POST("/sync", adminHandler.SyncFromConfig)
+
+			// 结构模板
+			admin.GET("/structures", adminHandler.GetStructures)
+			admin.PUT("/structures/:id", adminHandler.UpdateStructure)
 		}
 	}
 }

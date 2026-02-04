@@ -224,7 +224,7 @@ export const worldAPI = {
 
     // 抽卡生成世界设定
     async gachaWorldSettings(projectId, params) {
-        return post(`/api/v1/projects/${projectId}/world-stages/gacha`, params);
+        return post(`/api/v1/projects/${projectId}/world-gacha`, params);
     }
 };
 

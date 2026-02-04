@@ -3,6 +3,8 @@ package db
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/xlei/xupu/internal/models"
@@ -21,16 +23,25 @@ type PostgresConfig struct {
 	SSLMode  string
 }
 
-// DefaultPostgresConfig 默认PostgreSQL配置
+// DefaultPostgresConfig 从环境变量获取配置
 func DefaultPostgresConfig() *PostgresConfig {
+	port, _ := strconv.Atoi(getEnv("DB_PORT", "5432"))
 	return &PostgresConfig{
-		Host:    "localhost",
-		Port:    5432,
-		User:    "xupu",
-		Password: "xupu123",
-		DBName:  "xupu",
-		SSLMode: "disable",
+		Host:     getEnv("DB_HOST", "localhost"),
+		Port:     port,
+		User:     getEnv("DB_USER", "postgres"),
+		Password: getEnv("DB_PASSWORD", "xupu123"),
+		DBName:   getEnv("DB_NAME", "xupu"),
+		SSLMode:  "disable",
 	}
+}
+
+// getEnv 获取环境变量
+func getEnv(key, fallback string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return fallback
 }
 
 // PostgresDatabase PostgreSQL数据库实现
@@ -45,12 +56,12 @@ func NewPostgres(cfg *PostgresConfig) (*PostgresDatabase, error) {
 	}
 
 	dsn := fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s TimeZone=Asia/Shanghai",
 		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.DBName, cfg.SSLMode,
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Silent),
+		Logger: logger.Default.LogMode(logger.Info),
 		NowFunc: func() time.Time {
 			return time.Now().UTC()
 		},
@@ -79,8 +90,14 @@ func (p *PostgresDatabase) Migrate() error {
 		&models.Character{},
 		&models.Project{},
 		&models.NarrativeBlueprint{},
+		&models.Chapter{},
+		&models.NarrativeNode{},
+		&models.NodeChapterMapping{},
 		&models.SceneOutput{},
 		&models.User{},
+		&models.SysConfig{},
+		&models.PromptTemplate{},
+		&models.NarrativeTemplate{},
 	)
 }
 
@@ -142,7 +159,7 @@ func (p *PostgresDatabase) DeleteWorld(id string) error {
 func (p *PostgresDatabase) UpdateWorldStage(id string, stage string, data interface{}) error {
 	updates := map[string]interface{}{
 		fmt.Sprintf("%s", stage): data,
-		"updated_at": time.Now(),
+		"updated_at":             time.Now(),
 	}
 	return p.db.Model(&models.WorldSetting{}).
 		Where("id = ?", id).
@@ -483,6 +500,16 @@ func (p *PostgresDatabase) SaveChapter(chapter *models.Chapter) error {
 func (p *PostgresDatabase) GetChapter(id string) (*models.Chapter, error) {
 	var chapter models.Chapter
 	err := p.db.First(&chapter, "id = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &chapter, nil
+}
+
+// GetChapterByNum 根据章节号获取章节
+func (p *PostgresDatabase) GetChapterByNum(projectID string, chapterNum int) (*models.Chapter, error) {
+	var chapter models.Chapter
+	err := p.db.Where("project_id = ? AND chapter_num = ?", projectID, chapterNum).First(&chapter).Error
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,23 @@
+[Unit]
+Description=Xupu API Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/xupu
+ExecStart=/root/xupu/xupu-api
+Restart=always
+RestartSec=5
+Environment="DB_HOST=localhost"
+Environment="DB_PORT=5432"
+Environment="DB_USER=postgres"
+Environment="DB_PASSWORD="
+Environment="DB_NAME=xupu"
+Environment="JWT_SECRET=test-secret"
+Environment="FANQIE_COOKIE="
+Environment="PORT=80"
+Environment="GIN_MODE=release"
+
+[Install]
+WantedBy=multi-user.target

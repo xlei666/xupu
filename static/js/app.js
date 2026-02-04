@@ -9,6 +9,7 @@ import RegisterPage from './pages/RegisterPage.js';
 import DashboardPage from './pages/DashboardPage.js';
 import ProjectDetailPage from './pages/ProjectDetailPage.js';
 import DirectorPage from './pages/DirectorPage.js';
+import AdminPage from './pages/AdminPage.js';
 
 // 初始化导航栏
 const navbar = new Navbar('#navbar');
@@ -106,19 +107,28 @@ router.registerRoutes([
         }
     },
     {
+        path: '/admin',
+        meta: { requiresAuth: true },
+        handler: async () => {
+            navbar.mount();
+            const page = new AdminPage('#app');
+            page.mount();
+        }
+    },
+    {
         path: '/404',
         meta: { requiresAuth: false },
         handler: async () => {
             document.querySelector('#app').innerHTML = `
-                <div class="auth-page">
+                < div class="auth-page" >
                     <div class="auth-card text-center">
                         <h1 style="font-size: 4rem; color: var(--primary); margin-bottom: 1rem;">404</h1>
                         <h3>页面未找到</h3>
                         <p class="text-muted mb-4">您访问的页面不存在</p>
                         <a href="#/" class="btn btn-primary">返回首页</a>
                     </div>
-                </div>
-            `;
+                </div >
+                `;
         }
     }
 ]);

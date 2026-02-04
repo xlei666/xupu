@@ -9,27 +9,27 @@ import "github.com/xlei/xupu/internal/models"
 
 // CreateProjectRequest 创建项目请求
 type CreateProjectRequest struct {
-	Name        string         `json:"name" binding:"required"`
-	Description string         `json:"description"`
-	Mode        string         `json:"mode" binding:"required,oneof=planning intervention random story_core short script assisted workflow"`
+	Name        string          `json:"name" binding:"required"`
+	Description string          `json:"description"`
+	Mode        string          `json:"mode" binding:"required,oneof=planning intervention random story_core short script assisted workflow"`
 	Params      *CreationParams `json:"params"` // 可选：AI创作参数
 }
 
 // CreationParams 创作参数
 type CreationParams struct {
 	// 世界参数
-	WorldName   string `json:"world_name"`
-	WorldType   string `json:"world_type" binding:"required,oneof=fantasy scifi historical urban wuxia xianxia mixed"`
-	WorldTheme  string `json:"world_theme"`
-	WorldScale  string `json:"world_scale" binding:"required,oneof=village city nation continent planet universe"`
-	WorldStyle  string `json:"world_style"`
+	WorldName  string `json:"world_name"`
+	WorldType  string `json:"world_type" binding:"required,oneof=fantasy scifi historical urban wuxia xianxia mixed"`
+	WorldTheme string `json:"world_theme"`
+	WorldScale string `json:"world_scale" binding:"required,oneof=village city nation continent planet universe"`
+	WorldStyle string `json:"world_style"`
 
 	// 故事参数
 	StoryType    string `json:"story_type" binding:"required"`
 	Theme        string `json:"theme" binding:"required"`
 	Protagonist  string `json:"protagonist" binding:"required"`
 	Length       string `json:"length" binding:"required,oneof=short medium long"`
-	ChapterCount int  `json:"chapter_count" binding:"min=1,max=100"`
+	ChapterCount int    `json:"chapter_count" binding:"min=1,max=100"`
 	Structure    string `json:"structure" binding:"oneof=three_act heros_journey save_the_cat kishotenketsu freytag_pyramid"`
 
 	// 生成选项
@@ -61,15 +61,16 @@ type InterveneRequest struct {
 
 // CreateWorldRequest 创建世界请求
 type CreateWorldRequest struct {
-	Name      string `json:"name" binding:"required"`
-	Type      string `json:"type" binding:"required,oneof=fantasy scifi historical urban wuxia xianxia mixed"`
-	Scale     string `json:"scale" binding:"required,oneof=village city nation continent planet universe"`
-	Theme     string `json:"theme" binding:"required"`
-	Style     string `json:"style"`
+	Name  string `json:"name" binding:"required"`
+	Type  string `json:"type" binding:"required,oneof=fantasy scifi historical urban wuxia xianxia mixed"`
+	Scale string `json:"scale" binding:"required,oneof=village city nation continent planet universe"`
+	Theme string `json:"theme" binding:"required"`
+	Style string `json:"style"`
 }
 
 // CreateBlueprintRequest 创建蓝图请求
 type CreateBlueprintRequest struct {
+	ProjectID    string `json:"project_id"` // Optional, to link immediately
 	WorldID      string `json:"world_id" binding:"required"`
 	StoryType    string `json:"story_type" binding:"required"`
 	Theme        string `json:"theme" binding:"required"`
@@ -100,44 +101,47 @@ type ErrorInfo struct {
 
 // ProjectResponse 项目响应
 type ProjectResponse struct {
-	ID            string  `json:"id"`
-	Name          string  `json:"name"`
-	Description   string  `json:"description"`
-	Mode          string  `json:"mode"`
-	Status        string  `json:"status"`
-	Progress      float64 `json:"progress"`
-	WorldID       string  `json:"world_id"`
-	NarrativeID   string  `json:"narrative_id"`
-	CreatedAt     string  `json:"created_at"`
-	UpdatedAt     string  `json:"updated_at"`
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Mode        string  `json:"mode"`
+	Status      string  `json:"status"`
+	Progress    float64 `json:"progress"`
+	WorldID     string  `json:"world_id"`
+	NarrativeID string  `json:"narrative_id"`
+	CreatedAt   string  `json:"created_at"`
+	UpdatedAt   string  `json:"updated_at"`
 }
 
 // WorldResponse 世界响应
 type WorldResponse struct {
-	ID            string                `json:"id"`
-	Name          string                `json:"name"`
-	Type          string                `json:"type"`
-	Scale         string                `json:"scale"`
-	Style         string                `json:"style"`
-	CoreQuestion  string                `json:"core_question"`
-	HighestGood   string                `json:"highest_good"`
-	UltimateEvil  string                `json:"ultimate_evil"`
-	SocialConflicts int                 `json:"social_conflicts_count"`
-	RegionCount   int                   `json:"region_count"`
-	RaceCount     int                   `json:"race_count"`
-	CreatedAt     string                `json:"created_at"`
+	ID              string `json:"id"`
+	Name            string `json:"name"`
+	Type            string `json:"type"`
+	Scale           string `json:"scale"`
+	Style           string `json:"style"`
+	CoreQuestion    string `json:"core_question"`
+	HighestGood     string `json:"highest_good"`
+	UltimateEvil    string `json:"ultimate_evil"`
+	SocialConflicts int    `json:"social_conflicts_count"`
+	RegionCount     int    `json:"region_count"`
+	RaceCount       int    `json:"race_count"`
+	CreatedAt       string `json:"created_at"`
 }
 
 // BlueprintResponse 蓝图响应
 type BlueprintResponse struct {
-	ID             string             `json:"id"`
-	WorldID        string             `json:"world_id"`
-	StructureType  string             `json:"structure_type"`
-	ChapterCount   int                `json:"chapter_count"`
-	SceneCount     int                `json:"scene_count"`
-	CoreTheme      string             `json:"core_theme"`
-	CharacterArcs  int                `json:"character_arcs_count"`
-	CreatedAt      string             `json:"created_at"`
+	ID            string               `json:"id"`
+	WorldID       string               `json:"world_id"`
+	StructureType string               `json:"structure_type"`
+	ChapterCount  int                  `json:"chapter_count"`
+	SceneCount    int                  `json:"scene_count"`
+	CoreTheme     string               `json:"core_theme"`
+	CharacterArcs int                  `json:"character_arcs_count"`
+	StoryOutline  models.StoryOutline  `json:"story_outline"`
+	ChapterPlans  []models.ChapterPlan `json:"chapter_plans"`
+	CreatedAt     string               `json:"created_at"`
+	UpdatedAt     string               `json:"updated_at"`
 }
 
 // CreateChapterRequest 创建章节请求
@@ -155,17 +159,17 @@ type UpdateChapterRequest struct {
 
 // ChapterResponse 章节响应
 type ChapterResponse struct {
-	ID           string    `json:"id"`
-	ProjectID    string    `json:"project_id"`
-	ChapterNum   int       `json:"chapter_num"`
-	Title        string    `json:"title"`
-	Content      string    `json:"content"`
-	WordCount    int       `json:"word_count"`
-	AIWordCount  int       `json:"ai_generated_word_count"`
-	Status       string    `json:"status"`
-	GeneratedAt  string    `json:"generated_at,omitempty"`
-	CreatedAt    string    `json:"created_at"`
-	UpdatedAt    string    `json:"updated_at"`
+	ID          string `json:"id"`
+	ProjectID   string `json:"project_id"`
+	ChapterNum  int    `json:"chapter_num"`
+	Title       string `json:"title"`
+	Content     string `json:"content"`
+	WordCount   int    `json:"word_count"`
+	AIWordCount int    `json:"ai_generated_word_count"`
+	Status      string `json:"status"`
+	GeneratedAt string `json:"generated_at,omitempty"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
 }
 
 // ReorderChaptersRequest 重新排序章节请求
@@ -175,17 +179,17 @@ type ReorderChaptersRequest struct {
 
 // ProgressResponse 进度响应
 type ProgressResponse struct {
-	ProjectID         string  `json:"project_id"`
-	ProjectName       string  `json:"project_name"`
-	Status            string  `json:"status"`
-	Progress          float64 `json:"progress"`
-	CurrentStage      string  `json:"current_stage"`
-	WorldCompleted    bool    `json:"world_completed"`
+	ProjectID          string  `json:"project_id"`
+	ProjectName        string  `json:"project_name"`
+	Status             string  `json:"status"`
+	Progress           float64 `json:"progress"`
+	CurrentStage       string  `json:"current_stage"`
+	WorldCompleted     bool    `json:"world_completed"`
 	NarrativeCompleted bool    `json:"narrative_completed"`
-	TotalChapters     int     `json:"total_chapters"`
-	TotalScenes       int     `json:"total_scenes"`
-	GeneratedScenes   int     `json:"generated_scenes"`
-	WordCount         int     `json:"word_count"`
+	TotalChapters      int     `json:"total_chapters"`
+	TotalScenes        int     `json:"total_scenes"`
+	GeneratedScenes    int     `json:"generated_scenes"`
+	WordCount          int     `json:"word_count"`
 	CompletionPercent  float64 `json:"completion_percent"`
 }
 
@@ -206,6 +210,28 @@ func toProjectResponse(p *models.Project) ProjectResponse {
 		NarrativeID: p.NarrativeID,
 		CreatedAt:   p.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		UpdatedAt:   p.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+	}
+}
+
+// toBlueprintResponse 转换蓝图响应
+func toBlueprintResponse(b *models.NarrativeBlueprint) BlueprintResponse {
+	characterArcsCount := 0
+	if b.CharacterArcs != nil {
+		characterArcsCount = len(b.CharacterArcs)
+	}
+
+	return BlueprintResponse{
+		ID:            b.ID,
+		WorldID:       b.WorldID,
+		StructureType: b.StoryOutline.StructureType,
+		ChapterCount:  len(b.ChapterPlans),
+		SceneCount:    len(b.Scenes),
+		CoreTheme:     b.ThemePlan.CoreTheme,
+		CharacterArcs: characterArcsCount,
+		StoryOutline:  b.StoryOutline,
+		ChapterPlans:  b.ChapterPlans,
+		CreatedAt:     b.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt:     b.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
 	}
 }
 
@@ -255,70 +281,70 @@ func toChapterResponse(c *models.Chapter) ChapterResponse {
 
 // NodeTreeItem 节点树项
 type NodeTreeItem struct {
-	ID          string        `json:"id"`
-	Title       string        `json:"title"`
-	NodeType    models.NodeType `json:"node_type"`
+	ID          string            `json:"id"`
+	Title       string            `json:"title"`
+	NodeType    models.NodeType   `json:"node_type"`
 	NodeStatus  models.NodeStatus `json:"node_status"`
-	NodeLevel   int            `json:"node_level"`
-	NodeOrder   int            `json:"node_order"`
-	Description string         `json:"description"`
-	Children    []NodeTreeItem `json:"children"`
+	NodeLevel   int               `json:"node_level"`
+	NodeOrder   int               `json:"node_order"`
+	Description string            `json:"description"`
+	Children    []NodeTreeItem    `json:"children"`
 }
 
 // NodeResponse 节点响应
 type NodeResponse struct {
-	ID            string                 `json:"id"`
-	ProjectID     string                 `json:"project_id"`
-	WorldID       string                 `json:"world_id"`
-	ChapterID     *string                `json:"chapter_id,omitempty"`
-	ParentID      *string                `json:"parent_id,omitempty"`
-	NodeLevel     int                    `json:"node_level"`
-	NodeOrder     int                    `json:"node_order"`
-	NodeType      models.NodeType        `json:"node_type"`
-	NodeStatus    models.NodeStatus      `json:"node_status"`
-	Title         string                 `json:"title"`
-	Description   string                 `json:"description"`
-	Content       string                 `json:"content"`
-	Metadata      models.NodeMetadata    `json:"metadata"`
-	Branches      []models.NodeBranch    `json:"branches"`
+	ID               string              `json:"id"`
+	ProjectID        string              `json:"project_id"`
+	WorldID          string              `json:"world_id"`
+	ChapterID        *string             `json:"chapter_id,omitempty"`
+	ParentID         *string             `json:"parent_id,omitempty"`
+	NodeLevel        int                 `json:"node_level"`
+	NodeOrder        int                 `json:"node_order"`
+	NodeType         models.NodeType     `json:"node_type"`
+	NodeStatus       models.NodeStatus   `json:"node_status"`
+	Title            string              `json:"title"`
+	Description      string              `json:"description"`
+	Content          string              `json:"content"`
+	Metadata         models.NodeMetadata `json:"metadata"`
+	Branches         []models.NodeBranch `json:"branches"`
 	SelectedBranchID *string             `json:"selected_branch_id,omitempty"`
-	CreatedAt     string                 `json:"created_at"`
-	UpdatedAt     string                 `json:"updated_at"`
+	CreatedAt        string              `json:"created_at"`
+	UpdatedAt        string              `json:"updated_at"`
 }
 
 // MappingResponse 映射关系响应
 type MappingResponse struct {
-	ID            string              `json:"id"`
-	ProjectID     string              `json:"project_id"`
-	ChapterID     string              `json:"chapter_id"`
-	NodeID        string              `json:"node_id"`
-	MappingType   models.MappingType  `json:"mapping_type"`
-	Sequence      int                 `json:"sequence"`
+	ID            string               `json:"id"`
+	ProjectID     string               `json:"project_id"`
+	ChapterID     string               `json:"chapter_id"`
+	NodeID        string               `json:"node_id"`
+	MappingType   models.MappingType   `json:"mapping_type"`
+	Sequence      int                  `json:"sequence"`
 	MergeStrategy models.MergeStrategy `json:"merge_strategy"`
-	CreatedAt     string              `json:"created_at"`
-	UpdatedAt     string              `json:"updated_at"`
+	CreatedAt     string               `json:"created_at"`
+	UpdatedAt     string               `json:"updated_at"`
 }
 
 // toNodeResponse 转换节点响应
 func toNodeResponse(node *models.NarrativeNode) NodeResponse {
 	return NodeResponse{
-		ID:             node.ID,
-		ProjectID:      node.ProjectID,
-		WorldID:        node.WorldID,
-		ChapterID:      node.ChapterID,
-		ParentID:       node.ParentID,
-		NodeLevel:      node.NodeLevel,
-		NodeOrder:      node.NodeOrder,
-		NodeType:       node.NodeType,
-		NodeStatus:     node.NodeStatus,
-		Title:          node.Title,
-		Description:    node.Description,
-		Content:        node.Content,
-		Metadata:       node.Metadata,
-		Branches:       node.Branches,
+		ID:               node.ID,
+		ProjectID:        node.ProjectID,
+		WorldID:          node.WorldID,
+		ChapterID:        node.ChapterID,
+		ParentID:         node.ParentID,
+		NodeLevel:        node.NodeLevel,
+		NodeOrder:        node.NodeOrder,
+		NodeType:         node.NodeType,
+		NodeStatus:       node.NodeStatus,
+		Title:            node.Title,
+		Description:      node.Description,
+		Content:          node.Content,
+		Metadata:         node.Metadata,
+		Branches:         node.Branches,
 		SelectedBranchID: node.SelectedBranchID,
-		CreatedAt:      node.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt:      node.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		CreatedAt:        node.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt:        node.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
 	}
 }
 

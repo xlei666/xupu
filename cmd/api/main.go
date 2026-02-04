@@ -82,9 +82,10 @@ func main() {
 	synopsisHandler := handlers.NewSynopsisHandler(db.Get())
 	writerHandler := handlers.NewWriterHandler(db.Get())
 	externalRankHandler := handlers.NewExternalRankHandler()
+	adminHandler := handlers.NewAdminHandler(db.Get())
 
 	// 注册路由
-	server.RegisterRoutes(projectHandler, worldHandler, narrativeHandler, exportHandler, authHandler, chapterHandler, narrativeNodeHandler, worldSettingHandler, characterHandler, synopsisHandler, writerHandler, externalRankHandler)
+	server.RegisterRoutes(projectHandler, worldHandler, narrativeHandler, exportHandler, authHandler, chapterHandler, narrativeNodeHandler, worldSettingHandler, characterHandler, synopsisHandler, writerHandler, externalRankHandler, adminHandler)
 
 	// 配置静态文件服务（从文件系统加载，禁用JS缓存便于开发）
 	server.Engine().Use(func(c *gin.Context) {

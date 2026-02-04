@@ -44,6 +44,12 @@ export default class Navbar extends BaseComponent {
                                 项目
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#/admin">
+                                <i class="bi bi-gear-fill me-1"></i>
+                                系统后台
+                            </a>
+                        </li>
                     </ul>
                     <div class="d-flex align-items-center gap-2">
                         <div class="d-flex align-items-center gap-2 px-2 py-1" style="background: var(--bg-hover); border-radius: var(--radius-md);">

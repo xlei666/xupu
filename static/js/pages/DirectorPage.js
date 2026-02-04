@@ -305,6 +305,24 @@ export default class DirectorPage extends BaseComponent {
     async onMounted() {
         this.$('#projectName').textContent = `Project: ${this.projectId}`;
         this.log('系统就绪');
+
+        // Try to load existing chapters
+        try {
+            const res = await this.fetchWithAuth(`/projects/${this.projectId}/chapters`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.data && data.data.length > 0) {
+                    this.chapters = data.data;
+                    this.renderChaptersNav();
+                    this.renderXiGangList();
+                    this.enableTab('xigang');
+                    this.updateStatus();
+                    this.log(`已加载 ${this.chapters.length} 章`);
+                }
+            }
+        } catch (e) {
+            // Ignore if fails, maybe new project
+        }
     }
 
     bindEvents() {
@@ -450,8 +468,8 @@ export default class DirectorPage extends BaseComponent {
         this.log('正在调用AI生成世界设定...');
 
         try {
-            // Using POST /api/v1/projects/:id/world-stages/gacha
-            const response = await this.fetchWithAuth(`/projects/${this.projectId}/world-stages/gacha`, {
+            // Using POST /api/v1/projects/:id/world-gacha
+            const response = await this.fetchWithAuth(`/projects/${this.projectId}/world-gacha`, {
                 method: 'POST',
                 body: {
                     context: `${storyCore}\n${description}`,
@@ -538,44 +556,111 @@ export default class DirectorPage extends BaseComponent {
     // --- DaGang ---
 
     async generateDaGang() {
+        if (!this.currentSettingId) {
+            showToast('请先生成并确认核心设定', 'warning');
+            return;
+        }
+
+        const storyCore = this.$('#storyCore').value.trim();
+        const genre = this.$('#genre').value.trim();
+
         this.log('正在生成全书大纲...');
-        // Mock implementation since /api/v1/narrative/dagang is complex or missing
-        // Could try calling CreateBlueprint if we had params
+        this.isGenerating = true;
 
         this.$('#dagangFormArea').style.display = 'none';
         this.$('#dagangResultArea').style.display = 'block';
         this.$('#dagangViewArea').style.display = 'none';
 
         const outputEl = this.$('#dagangOutput');
-        outputEl.innerHTML = 'AI大纲生成功能接入中...<br>目前仅支持查看自动生成的世界设定。';
-        this.log('大纲生成暂时跳过（Mock）');
+        outputEl.innerHTML = '<span class="stream-cursor"></span>';
+        outputEl.classList.add('generating');
 
-        this.generatedDagangContent = "大纲内容占位符...";
+        try {
+            const response = await this.fetchWithAuth('/blueprints', {
+                method: 'POST',
+                body: {
+                    project_id: this.projectId,
+                    world_id: this.currentSettingId,
+                    story_type: genre || "通用",
+                    theme: storyCore || "成长与冒险",
+                    protagonist: "主角",
+                    length: "long", // Default to long for now
+                    chapter_count: 10 // Default
+                }
+            });
 
-        setTimeout(() => {
-            this.enableTab('xigang');
-        }, 1000);
+            if (!response.ok) throw new Error(`API Error: ${response.status}`);
+            const data = await response.json();
+            const blueprint = data.data;
+
+            this.currentBlueprint = blueprint;
+            this.generatedDagangContent = JSON.stringify(blueprint.story_outline, null, 2);
+
+            // Format for display
+            let displayHtml = `<h3>故事结构: ${blueprint.structure_type}</h3>`;
+            if (blueprint.chapter_plans) {
+                displayHtml += `<div class="chapter-preview-list">`;
+                blueprint.chapter_plans.forEach(cp => {
+                    displayHtml += `<div class="chapter-preview-item">
+                        <strong>第${cp.chapter}章 ${cp.title}</strong><br>
+                        <small>${cp.purpose}</small>
+                    </div>`;
+                });
+                displayHtml += `</div>`;
+            }
+
+            outputEl.innerHTML = displayHtml;
+            this.log('大纲生成完成');
+
+        } catch (err) {
+            this.log('生成大纲失败: ' + err.message);
+            outputEl.innerHTML = `<div style="color:red">生成失败: ${err.message}</div>`;
+        } finally {
+            outputEl.classList.remove('generating');
+            this.isGenerating = false;
+        }
     }
 
     // Stub other methods for safety
     regenerateDaGang() { this.generateDaGang(); }
-    confirmDaGang() {
-        this.$('#dagangResultArea').style.display = 'none';
-        this.$('#dagangViewArea').style.display = 'block';
-        this.$('#dagangEdit').value = this.generatedDagangContent;
-        this.currentDaGangId = "mock_dagang";
-        this.updateStatus();
+
+    async confirmDaGang() {
+        if (!this.currentBlueprint) return;
+
+        this.log('正在应用大纲并创建章节...');
+        try {
+            await this.fetchWithAuth(`/projects/${this.projectId}/blueprint/apply`, {
+                method: 'POST'
+            });
+
+            this.log('章节创建成功，加载中...');
+
+            // Reload chapters
+            const chRes = await this.fetchWithAuth(`/projects/${this.projectId}/chapters`);
+            const chData = await chRes.json();
+            this.chapters = chData.data || [];
+
+            this.$('#dagangResultArea').style.display = 'none';
+            this.$('#dagangViewArea').style.display = 'block';
+            this.$('#dagangEdit').value = this.generatedDagangContent;
+            this.currentDaGangId = this.currentBlueprint.id;
+
+            this.renderChaptersNav();
+            this.renderXiGangList();
+            this.updateStatus();
+            this.enableTab('xigang');
+            this.switchTab('xigang');
+
+        } catch (err) {
+            showToast('应用大纲失败: ' + err.message, 'error');
+        }
     }
+
     saveDaGangEdit() { this.log("大纲已本地保存"); }
-    generateXiGang() {
-        this.log("细纲生成功能接入中...");
-        // Mock Chapters
-        this.chapters = [
-            { chapter_num: 1, chapter_name: "开端", instruction: "主角登场..." },
-            { chapter_num: 2, chapter_name: "冲突", instruction: "遇到敌人..." }
-        ];
-        this.renderXiGangList();
-        this.renderChaptersNav();
+
+    async generateXiGang() {
+        this.log("功能说明：请点击左侧章节列表，然后点击'生成/查看细纲'");
+        // This button acts as a helper now
         this.enableTab('content');
     }
 
@@ -583,7 +668,7 @@ export default class DirectorPage extends BaseComponent {
         const html = this.chapters.map((ch, i) => `
             <div class="dir-chapter-item" data-index="${i}">
                 <span class="chapter-status"></span>
-                第${ch.chapter_num}章 ${ch.chapter_name}
+                第${ch.chapter_num}章 ${ch.title}
             </div>
         `).join('');
         this.$('#chapterList').innerHTML = html;
@@ -593,10 +678,14 @@ export default class DirectorPage extends BaseComponent {
     }
 
     renderXiGangList() {
+        if (!this.chapters || this.chapters.length === 0) {
+            this.$('#xigangList').innerHTML = '<div style="padding:10px;color:#999">暂无章节，请先在"全书大纲"确认生成。</div>';
+            return;
+        }
         const html = this.chapters.map((ch, i) => `
             <div class="xigang-card" data-index="${i}">
-                <div class="xigang-card-title">第${ch.chapter_num}章 ${ch.chapter_name}</div>
-                <div class="xigang-card-info">${ch.instruction || ''}</div>
+                <div class="xigang-card-title">第${ch.chapter_num}章 ${ch.title}</div>
+                <div class="xigang-card-info">${ch.status || 'draft'}</div>
             </div>
         `).join('');
         this.$('#xigangList').innerHTML = html;
@@ -605,23 +694,95 @@ export default class DirectorPage extends BaseComponent {
         });
     }
 
-    selectChapter(index) {
-        this.currentXiGangId = index;
+    async selectChapter(index) {
+        if (!this.chapters[index]) return;
+        this.currentChapterIndex = index;
         const ch = this.chapters[index];
 
         this.container.querySelectorAll('.dir-chapter-item').forEach((el, i) => el.classList.toggle('active', i === index));
         this.container.querySelectorAll('.xigang-card').forEach((el, i) => el.classList.toggle('active', i === index));
 
         this.$('#currentXigang').innerHTML = `
-            <div style="font-weight: 500; margin-bottom: 8px;">第${ch.chapter_num}章 ${ch.chapter_name}</div>
-            <div style="white-space: pre-wrap;">${ch.instruction || '无详细内容'}</div>
+            <div style="font-weight: 500; margin-bottom: 8px;">第${ch.chapter_num}章 ${ch.title}</div>
+            <div id="xigangContentLoading">加载中...</div>
         `;
 
-        this.$('#contentTitle').textContent = `第${ch.chapter_num}章 ${ch.chapter_name}`;
-        this.$('#contentBody').innerHTML = `<div class="empty-state"><div>AI写作功能接入中...</div></div>`;
+        this.$('#contentTitle').textContent = `第${ch.chapter_num}章 ${ch.title}`;
+        this.$('#contentBody').innerHTML = ch.content ? ch.content.replace(/\n/g, '<br>') : '<div class="empty-state"><div>暂无内容</div></div>';
         this.$('#writeBtn').disabled = false;
+        this.$('#writeBtn').textContent = ch.content ? '继续写作' : '开始写作本章';
+
+        // Fetch Outline
+        try {
+            const res = await this.fetchWithAuth(`/projects/${this.projectId}/chapters/${ch.id}/outline`);
+            const data = await res.json();
+            // Assuming data.data.scenes is the list
+            if (data.data && data.data.scenes && data.data.scenes.length > 0) {
+                const scenesHtml = data.data.scenes.map(s => `<div><strong>场景${s.sequence}:</strong> ${s.action}</div>`).join('');
+                this.$('#currentXigang').innerHTML = `
+                    <div style="font-weight: 500; margin-bottom: 8px;">第${ch.chapter_num}章 ${ch.title}</div>
+                    <div style="font-size:12px">${scenesHtml}</div>
+                 `;
+            } else {
+                this.$('#currentXigang').innerHTML += '<div>暂无细纲，<button class="btn btn-sm" id="btnGenOutline">立即生成</button></div>';
+                const btn = this.$('#btnGenOutline');
+                if (btn) this.addEventListener(btn, 'click', () => this.triggerGenerateOutline(ch.id));
+            }
+        } catch (e) {
+            this.$('#currentXigang').innerHTML = '获取细纲失败';
+        }
     }
 
-    generateContent() { alert("AI写作功能开发中"); }
-    continueContent() { }
+    async triggerGenerateOutline(chapterId) {
+        this.log('正在生成细纲...');
+        try {
+            // Re-calling the same endpoint usually triggers generation if backend supports it or use a specific gen endpoint?
+            // The existing handler `writerHandler.GenerateChapterOutline` handles generation if not present/requested?
+            // Let's assume it does or we need a specific 'generate' param. 
+            // Looking at writer.go, GenerateChapterOutline DOES generation logic.
+            const res = await this.fetchWithAuth(`/projects/${this.projectId}/chapters/${chapterId}/outline`);
+            if (res.ok) {
+                this.selectChapter(this.currentChapterIndex); // Reload
+                this.log('细纲生成成功');
+            }
+        } catch (e) {
+            this.log('生成失败');
+        }
+    }
+
+    async generateContent() {
+        const index = this.currentChapterIndex;
+        if (typeof index !== 'number') return;
+        const ch = this.chapters[index];
+
+        this.log('正在AI写作...');
+        this.$('#writeBtn').disabled = true;
+        this.$('#writeBtn').textContent = '写作中...';
+
+        try {
+            const res = await this.fetchWithAuth(`/projects/${this.projectId}/chapters/${ch.id}/continue`, {
+                method: 'POST',
+                body: {
+                    instructions: "继续根据细纲写作",
+                    word_count: 1000
+                }
+            });
+
+            const data = await res.json();
+            if (data.data && data.data.chapter) {
+                // Update local chapter content
+                this.chapters[index] = data.data.chapter;
+                this.selectChapter(index); // Reload view
+                this.log('写作完成');
+            }
+        } catch (e) {
+            this.log('写作失败: ' + e.message);
+            showToast('写作失败', 'error');
+        } finally {
+            this.$('#writeBtn').disabled = false;
+            this.$('#writeBtn').textContent = '继续写作';
+        }
+    }
+
+    continueContent() { this.generateContent(); }
 }

@@ -14,8 +14,8 @@ import (
 
 // WorldSettingHandler 世界设定处理器
 type WorldSettingHandler struct {
-	db            db.Database
-	worldBuilder  *worldbuilder.WorldBuilder
+	db           db.Database
+	worldBuilder *worldbuilder.WorldBuilder
 }
 
 // NewWorldSettingHandler 创建世界设定处理器
@@ -33,20 +33,20 @@ func NewWorldSettingHandler(database db.Database, worldBuilder *worldbuilder.Wor
 // SaveWorldStagesRequest 保存世界设定请求
 type SaveWorldStagesRequest struct {
 	// 7个阶段的内容
-	Philosophy   *models.Philosophy    `json:"philosophy"`
-	Worldview    *models.Worldview     `json:"worldview"`
-	Laws         *models.Laws          `json:"laws"`
-	Geography    *models.Geography     `json:"geography"`
-	Civilization *models.Civilization  `json:"civilization"`
-	Society      *models.Society        `json:"society"`
-	History      *models.History        `json:"history"`
+	Philosophy   *models.Philosophy   `json:"philosophy"`
+	Worldview    *models.Worldview    `json:"worldview"`
+	Laws         *models.Laws         `json:"laws"`
+	Geography    *models.Geography    `json:"geography"`
+	Civilization *models.Civilization `json:"civilization"`
+	Society      *models.Society      `json:"society"`
+	History      *models.History      `json:"history"`
 }
 
 // GenerateWorldStageRequest 生成特定阶段请求
 type GenerateWorldStageRequest struct {
 	Stage    string                 `json:"stage" binding:"required"` // 阶段名称
-	Context  string                 `json:"context"`                 // 用户输入的上下文或约束
-	Settings map[string]interface{} `json:"settings"`                // 额外设置
+	Context  string                 `json:"context"`                  // 用户输入的上下文或约束
+	Settings map[string]interface{} `json:"settings"`                 // 额外设置
 }
 
 // ============================================
@@ -268,8 +268,8 @@ func (h *WorldSettingHandler) GenerateWorldStage(c *gin.Context) {
 			return
 		}
 		result, err := h.worldBuilder.GenerateStage2(worldbuilder.Stage2Input{
-			CoreQuestion:  world.Philosophy.CoreQuestion,
-			HighestGood:   world.Philosophy.ValueSystem.HighestGood,
+			CoreQuestion: world.Philosophy.CoreQuestion,
+			HighestGood:  world.Philosophy.ValueSystem.HighestGood,
 			UltimateEvil: world.Philosophy.ValueSystem.UltimateEvil,
 		})
 		if err != nil {
@@ -347,9 +347,9 @@ func (h *WorldSettingHandler) GenerateWorldStage(c *gin.Context) {
 		valueSystem := fmt.Sprintf("最高善:%s", world.Philosophy.ValueSystem.HighestGood)
 
 		result, err := h.worldBuilder.GenerateStage6(worldbuilder.Stage6Input{
-			WorldType:       string(world.Type),
+			WorldType:        string(world.Type),
 			GeographySummary: geographySummary,
-			ValueSystem:     valueSystem,
+			ValueSystem:      valueSystem,
 		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, errorResponse("GENERATE_FAILED", "生成失败", err.Error()))
@@ -435,10 +435,13 @@ func (h *WorldSettingHandler) GachaWorldSettings(c *gin.Context) {
 	if project.WorldID != "" {
 		world, err = h.db.GetWorld(project.WorldID)
 		if err != nil {
-			c.JSON(http.StatusNotFound, errorResponse("NOT_FOUND", "世界设定不存在", ""))
-			return
+			// 如果找不到引用的世界，清除引用并重新创建
+			fmt.Printf("[WARN] Referenced world %s not found, creating new one\n", project.WorldID)
+			project.WorldID = ""
 		}
-	} else {
+	}
+
+	if project.WorldID == "" {
 		// 从请求参数中获取世界类型和风格
 		worldType := models.WorldFantasy // 默认奇幻
 		worldStyle := "通用"               // 默认风格
@@ -486,8 +489,8 @@ func (h *WorldSettingHandler) GachaWorldSettings(c *gin.Context) {
 		case "worldview":
 			if world.Philosophy.CoreQuestion != "" {
 				result, err := h.worldBuilder.GenerateStage2(worldbuilder.Stage2Input{
-					CoreQuestion:  world.Philosophy.CoreQuestion,
-					HighestGood:   world.Philosophy.ValueSystem.HighestGood,
+					CoreQuestion: world.Philosophy.CoreQuestion,
+					HighestGood:  world.Philosophy.ValueSystem.HighestGood,
 					UltimateEvil: world.Philosophy.ValueSystem.UltimateEvil,
 				})
 				if err == nil {
@@ -549,9 +552,9 @@ func (h *WorldSettingHandler) GachaWorldSettings(c *gin.Context) {
 				valueSystem := fmt.Sprintf("最高善:%s", world.Philosophy.ValueSystem.HighestGood)
 
 				result, err := h.worldBuilder.GenerateStage6(worldbuilder.Stage6Input{
-					WorldType:       string(world.Type),
+					WorldType:        string(world.Type),
 					GeographySummary: geographySummary,
-					ValueSystem:     valueSystem,
+					ValueSystem:      valueSystem,
 				})
 				if err == nil {
 					world.Civilization = *result.Civilization
@@ -573,13 +576,13 @@ func (h *WorldSettingHandler) GachaWorldSettings(c *gin.Context) {
 	c.JSON(http.StatusOK, successResponse(gin.H{
 		"world_id": world.ID,
 		"stages": gin.H{
-			"philosophy":         world.Philosophy,
-			"worldview":          world.Worldview,
-			"laws":               world.Laws,
-			"story_soil":         world.StorySoil,
-			"geography":          world.Geography,
-			"civilization":       world.Civilization,
-			"society":            world.Society,
+			"philosophy":   world.Philosophy,
+			"worldview":    world.Worldview,
+			"laws":         world.Laws,
+			"story_soil":   world.StorySoil,
+			"geography":    world.Geography,
+			"civilization": world.Civilization,
+			"society":      world.Society,
 		},
 		"message": "世界设定抽卡成功！",
 	}))

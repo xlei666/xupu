@@ -198,7 +198,8 @@ export default class DashboardPage extends BaseComponent {
         const formData = new FormData(e.target);
         const projectData = {
             name: formData.get('name'),
-            description: formData.get('description')
+            description: formData.get('description'),
+            mode: 'planning' // Default mode
         };
 
         try {

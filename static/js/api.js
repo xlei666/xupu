@@ -38,7 +38,11 @@ async function request(url, options = {}) {
         // 处理其他错误状态
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: '请求失败' }));
-            throw new Error(errorData.error || errorData.message || `HTTP ${response.status}`);
+            // Handle error object from backend (APIResponse.Error)
+            const errorMsg = (errorData.error && errorData.error.message)
+                ? errorData.error.message
+                : (errorData.message || errorData.error || `HTTP ${response.status}`);
+            throw new Error(errorMsg);
         }
 
         // 处理204 No Content

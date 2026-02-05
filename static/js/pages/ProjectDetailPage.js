@@ -16,7 +16,7 @@ export default class ProjectDetailPage extends BaseComponent {
         this.characters = [];
         this.blueprint = null;
         this.loading = true;
-        
+
         // State for setting generation
         this.isGenerating = false;
         this.generatedSettingContent = '';
@@ -34,15 +34,15 @@ export default class ProjectDetailPage extends BaseComponent {
 
             const response = await projectAPI.getProject(this.projectId);
             this.project = response?.data?.project || response?.data || null;
-            
+
             if (this.project) {
                 projectActions.setCurrentProject(this.project);
-                
+
                 // Load related data in parallel
                 const promises = [
                     chapterAPI.getChapters(this.projectId).then(res => this.chapters = res?.data?.chapters || []),
                     this.project.world_id ? worldAPI.getWorldSettings(this.projectId).then(res => this.worldSettings = res?.data || null) : Promise.resolve(null),
-                    characterAPI.getCharacters(this.projectId).then(res => this.characters = res?.data || []),
+                    characterAPI.getCharacters(this.projectId).then(res => this.characters = res?.data?.characters || []),
                     // If we have narrative_id, try to fetch blueprint. 
                     // Note: API might not expose getBlueprint by project_id easily, but let's try assuming narrative_id is blueprint_id
                     this.project.narrative_id ? blueprintAPI.getBlueprint(this.project.narrative_id).then(res => this.blueprint = res?.data || null).catch(() => null) : Promise.resolve(null)
@@ -219,11 +219,11 @@ export default class ProjectDetailPage extends BaseComponent {
 
     renderCoreSettingPreview() {
         if (!this.worldSettings) return '<div class="text-muted">暂无设定</div>';
-        
+
         // Try to extract some core info
         const philosophy = this.worldSettings.philosophy?.core_question || '未定义';
         const worldview = this.worldSettings.worldview?.cosmology?.structure || '未定义';
-        
+
         return `
             <div class="row">
                 <div class="col-md-12">
@@ -239,10 +239,10 @@ export default class ProjectDetailPage extends BaseComponent {
         if (!this.characters || this.characters.length === 0) {
             return '<div class="p-3 text-muted text-center">暂无角色</div>';
         }
-        
+
         // Show top 5 characters
-        const displayChars = this.characters.slice(0, 5);
-        
+        const displayChars = (Array.isArray(this.characters) ? this.characters : []).slice(0, 5);
+
         return `
             <table class="table table-hover mb-0">
                 <thead class="table-light">
@@ -387,11 +387,11 @@ export default class ProjectDetailPage extends BaseComponent {
                 router.navigate(`/project/${this.projectId}/director`);
             });
         }
-        
+
         // View Full Setting
         const viewSettingBtn = this.$('#viewFullSettingBtn');
         if (viewSettingBtn) {
-             this.addEventListener(viewSettingBtn, 'click', () => {
+            this.addEventListener(viewSettingBtn, 'click', () => {
                 router.navigate(`/project/${this.projectId}/director`); // Director page shows full settings
             });
         }
@@ -425,7 +425,7 @@ export default class ProjectDetailPage extends BaseComponent {
         this.$('#settingResultArea').style.display = 'block';
         this.$('#settingFormActions').style.display = 'none';
         this.$('#settingResultActions').style.display = 'none';
-        
+
         const outputEl = this.$('#settingOutput');
         // Initialize structure ONCE
         outputEl.innerHTML = `
@@ -437,7 +437,7 @@ export default class ProjectDetailPage extends BaseComponent {
             </div>
             <div id="streamingResult" class="mt-3 text-start border rounded bg-white" style="max-height: 500px; overflow-y: auto; font-family: monospace; display: none;"></div>
         `;
-        
+
         try {
             const token = userActions.getToken();
             const response = await fetch(`${this.API_BASE}/projects/${this.projectId}/world-gacha`, {
@@ -484,14 +484,14 @@ export default class ProjectDetailPage extends BaseComponent {
                                 const progressEl = document.getElementById('genProgress');
                                 if (statusEl) statusEl.textContent = data.message || '生成中...';
                                 if (progressEl) progressEl.style.width = (data.percent || 0) + '%';
-                                
+
                             } else if (currentEvent === 'stage_data') {
                                 const streamDiv = document.getElementById('streamingResult');
                                 if (streamDiv) {
                                     streamDiv.style.display = 'block';
                                     const stageName = data.name || data.stage;
                                     const content = JSON.stringify(data.content, null, 2);
-                                    
+
                                     const newEntry = document.createElement('div');
                                     newEntry.className = 'p-3 border-bottom';
                                     newEntry.innerHTML = `
@@ -507,7 +507,7 @@ export default class ProjectDetailPage extends BaseComponent {
                                     streamDiv.style.display = 'block';
                                     const stageName = data.stage;
                                     const prompt = data.prompt;
-                                    
+
                                     const newEntry = document.createElement('div');
                                     newEntry.className = 'p-3 border-bottom bg-light';
                                     newEntry.innerHTML = `
@@ -539,12 +539,12 @@ export default class ProjectDetailPage extends BaseComponent {
                 if (s.worldview) text += `【世界观】\n${JSON.stringify(s.worldview, null, 2)}\n\n`;
                 if (s.laws) text += `【法则】\n${JSON.stringify(s.laws, null, 2)}\n\n`;
                 if (s.geography) text += `【地理】\n共${s.geography.regions ? s.geography.regions.length : 0}个区域\n\n`;
-                
+
                 outputEl.innerHTML = `<pre>${text}</pre>`;
                 this.$('#settingResultActions').style.display = 'block';
             } else {
-                 outputEl.innerHTML += '<div class="text-warning mt-3">生成结束，但未收到完整结果，请尝试刷新页面。</div>';
-                 this.$('#settingResultActions').style.display = 'block';
+                outputEl.innerHTML += '<div class="text-warning mt-3">生成结束，但未收到完整结果，请尝试刷新页面。</div>';
+                this.$('#settingResultActions').style.display = 'block';
             }
 
         } catch (err) {
@@ -556,9 +556,9 @@ export default class ProjectDetailPage extends BaseComponent {
     async confirmSettings() {
         const modal = bootstrap.Modal.getInstance(this.$('#settingModal'));
         modal.hide();
-        
+
         showToast('核心设定已保存', 'success');
-        
+
         // Reload project to get the new world_id and render content
         await this.loadProject();
     }

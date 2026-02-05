@@ -1,15 +1,19 @@
 
 import BaseComponent from '../components/BaseComponent.js';
-import { userActions } from '../store.js';
+import { adminAPI } from '../api.js';
 import { showToast } from '../utils.js';
 
 export default class AdminPage extends BaseComponent {
     constructor(container) {
         super(container);
         this.currentTab = 'prompts';
-        this.configs = [];
         this.prompts = [];
         this.structures = [];
+        this.configs = [];
+
+        // Edit state
+        this.editType = null;
+        this.editKey = null;
     }
 
     render() {
@@ -23,10 +27,10 @@ export default class AdminPage extends BaseComponent {
                             <a class="nav-link ${this.currentTab === 'prompts' ? 'active' : ''}" href="#" data-tab="prompts">提示词管理</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link ${this.currentTab === 'configs' ? 'active' : ''}" href="#" data-tab="configs">系统配置</a>
+                            <a class="nav-link ${this.currentTab === 'structures' ? 'active' : ''}" href="#" data-tab="structures">叙事结构模板</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link ${this.currentTab === 'structures' ? 'active' : ''}" href="#" data-tab="structures">叙事结构模板</a>
+                            <a class="nav-link ${this.currentTab === 'configs' ? 'active' : ''}" href="#" data-tab="configs">系统配置</a>
                         </li>
                     </ul>
                 </div>
@@ -54,6 +58,7 @@ export default class AdminPage extends BaseComponent {
                             <div class="mb-3">
                                 <label class="form-label">内容</label>
                                 <textarea class="form-control" id="editContent" rows="15" style="font-family: monospace;"></textarea>
+                                <div class="form-text text-muted" id="editHelpText"></div>
                             </div>
                         </form>
                     </div>
@@ -69,8 +74,8 @@ export default class AdminPage extends BaseComponent {
 
     renderContent() {
         if (this.currentTab === 'prompts') return this.renderPrompts();
-        if (this.currentTab === 'configs') return this.renderConfigs();
         if (this.currentTab === 'structures') return this.renderStructures();
+        if (this.currentTab === 'configs') return this.renderConfigs();
         return '';
     }
 
@@ -83,13 +88,13 @@ export default class AdminPage extends BaseComponent {
                 </button>
             </div>
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
                         <tr>
-                            <th>ID/Key</th>
+                            <th>Key</th>
                             <th>描述</th>
                             <th>版本</th>
-                            <th>操作</th>
+                            <th style="width: 100px;">操作</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -97,14 +102,59 @@ export default class AdminPage extends BaseComponent {
                         <tr>
                             <td><code>${p.key}</code></td>
                             <td>${p.description || '-'}</td>
-                            <td>v${p.version}</td>
+                            <td><span class="badge bg-secondary">v${p.version}</span></td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary edit-prompt-btn" data-key="${p.key}">
+                                <button class="btn btn-sm btn-outline-primary edit-btn" data-type="prompt" data-key="${p.key}">
                                     编辑
                                 </button>
                             </td>
                         </tr>
                         `).join('')}
+                        ${this.prompts.length === 0 ? '<tr><td colspan="4" class="text-center text-muted py-4">暂无数据</td></tr>' : ''}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    renderStructures() {
+        return `
+            <div class="d-flex justify-content-between mb-3">
+                <h5>叙事结构模板 (${this.structures.length})</h5>
+                <button class="btn btn-success btn-sm" id="syncStructuresBtn">
+                    <i class="bi bi-arrow-repeat"></i> 同步默认结构
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>名称</th>
+                            <th>描述</th>
+                            <th>状态</th>
+                            <th style="width: 100px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${this.structures.map(s => `
+                        <tr>
+                            <td><code>${s.id}</code></td>
+                            <td><strong>${s.name}</strong></td>
+                            <td class="text-muted small">${s.description || '-'}</td>
+                            <td>
+                                <span class="badge ${s.is_active ? 'bg-success' : 'bg-secondary'}">
+                                    ${s.is_active ? '启用' : '禁用'}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary edit-btn" data-type="structure" data-key="${s.id}">
+                                    编辑
+                                </button>
+                            </td>
+                        </tr>
+                        `).join('')}
+                        ${this.structures.length === 0 ? '<tr><td colspan="5" class="text-center text-muted py-4">暂无数据</td></tr>' : ''}
                     </tbody>
                 </table>
             </div>
@@ -113,128 +163,214 @@ export default class AdminPage extends BaseComponent {
 
     renderConfigs() {
         return `
-            <div class="alert alert-info">暂无配置项（开发中）</div>
-        `;
-    }
-
-    renderStructures() {
-        return `
-            <div class="alert alert-info">叙事结构模板管理（开发中）</div>
+            <div class="d-flex justify-content-between mb-3">
+                <h5>系统配置 (${this.configs.length})</h5>
+                <button class="btn btn-success btn-sm" id="syncConfigsBtn">
+                    <i class="bi bi-arrow-repeat"></i> 初始化/同步默认配置
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Key</th>
+                            <th>值</th>
+                            <th>类型</th>
+                            <th>描述</th>
+                            <th style="width: 100px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${this.configs.map(c => `
+                        <tr>
+                            <td><code>${c.key}</code></td>
+                            <td style="max-width: 300px;" class="text-truncate" title="${c.value}">${c.value}</td>
+                            <td><span class="badge bg-light text-dark border">${c.type}</span></td>
+                            <td class="text-muted small">${c.description || '-'}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary edit-btn" data-type="config" data-key="${c.key}">
+                                    编辑
+                                </button>
+                            </td>
+                        </tr>
+                        `).join('')}
+                        ${this.configs.length === 0 ? '<tr><td colspan="5" class="text-center text-muted py-4">暂无数据</td></tr>' : ''}
+                    </tbody>
+                </table>
+            </div>
         `;
     }
 
     mount() {
         super.mount();
-        this.loadPrompts();
+        this.loadCurrentTab();
+    }
 
-        // 绑定Tab切换
+    bindEvents() {
+        // Bind Tab Switching
         this.container.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.currentTab = e.target.dataset.tab;
-                this.refresh();
-                if (this.currentTab === 'prompts') this.loadPrompts();
+                this.update();
+                this.loadCurrentTab();
             });
         });
 
-        // 绑定同步按钮
-        const syncBtn = this.container.querySelector('#syncPromptsBtn');
-        if (syncBtn) {
-            syncBtn.addEventListener('click', () => this.syncPrompts());
-        }
+        // Add Event Delegation for dynamic buttons
+        // Use this.container directly as delegation root
+        this.addEventListener(this.container, 'click', (e) => {
+            const target = e.target;
 
-        // 绑定编辑按钮
-        this.container.addEventListener('click', (e) => {
-            if (e.target.closest('.edit-prompt-btn')) {
-                const key = e.target.closest('.edit-prompt-btn').dataset.key;
-                this.openEditModal(key);
+            // Sync Buttons
+            if (target.closest('#syncPromptsBtn')) this.handleSync('prompts');
+            if (target.closest('#syncStructuresBtn')) this.handleSync('structures');
+            if (target.closest('#syncConfigsBtn')) this.handleSync('configs');
+
+            // Edit Buttons
+            const editBtn = target.closest('.edit-btn');
+            if (editBtn) {
+                const { type, key } = editBtn.dataset;
+                this.openEditModal(type, key);
             }
         });
 
-        // 绑定保存
-        const saveBtn = document.querySelector('#saveBtn');
+        // Bind Save Button - Helper for modal
+        const saveBtn = document.getElementById('saveBtn');
         if (saveBtn) {
-            // Remove old listener to prevent duplicates if mount called multiple times
-            // A better way is to bind once or use proper component lifecycle cleanup
-            const newBtn = saveBtn.cloneNode(true);
-            saveBtn.parentNode.replaceChild(newBtn, saveBtn);
-            newBtn.addEventListener('click', () => this.saveEdit());
+            // Note: BaseComponent doesn't track listeners generated inside external modals easily if they are outside container
+            // But here modal is part of render(), so it is inside container (likely).
+            // However, bootstrap modal might move it to body. 
+            // Let's check render(): modal is part of render string.
+            // But if bootstrap moves it, we might lose it or duplicate binding.
+            // Ideally we bind to document body or use the one inside if it stays.
+            // Bootstrap 5 usually keeps it in place unless configured otherwise, or appends to body on show.
+            // Safest is to bind click on the specific ID if found.
+            // BaseComponent addEventListener wrapper is safer.
+            this.addEventListener(saveBtn, 'click', () => this.saveEdit());
         }
+    }
+
+    loadCurrentTab() {
+        if (this.currentTab === 'prompts') this.loadPrompts();
+        if (this.currentTab === 'structures') this.loadStructures();
+        if (this.currentTab === 'configs') this.loadConfigs();
     }
 
     async loadPrompts() {
         try {
-            const token = userActions.getToken();
-            const res = await fetch('/api/v1/admin/prompts', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            if (data.success) {
-                this.prompts = data.data;
-                this.refresh();
+            const res = await adminAPI.getPrompts();
+            if (res.success) {
+                this.prompts = res.data;
+                this.update();
             }
         } catch (e) {
-            console.error(e);
-            showToast('加载提示词失败', 'error');
+            showToast('加载提示词失败: ' + e.message, 'error');
         }
     }
 
-    async syncPrompts() {
-        if (!confirm('确定要从代码中加载默认提示词吗？即使数据库已存在也会被保留，仅会添加缺失项。')) return;
+    async loadStructures() {
+        try {
+            const res = await adminAPI.getStructures();
+            if (res.success) {
+                this.structures = res.data;
+                this.update();
+            }
+        } catch (e) {
+            showToast('加载结构失败: ' + e.message, 'error');
+        }
+    }
+
+    async loadConfigs() {
+        try {
+            const res = await adminAPI.getConfigs();
+            if (res.success) {
+                this.configs = res.data;
+                this.update();
+            }
+        } catch (e) {
+            showToast('加载配置失败: ' + e.message, 'error');
+        }
+    }
+
+    async handleSync(type) {
+        if (!confirm('确定要执行同步操作吗？这将从系统代码中恢复缺少的数据项。')) return;
 
         try {
-            const token = userActions.getToken();
-            const res = await fetch('/api/v1/admin/sync', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            if (data.success) {
-                showToast(`同步成功，新增 ${data.data.synced_count} 条`);
-                this.loadPrompts();
+            let res;
+            if (type === 'prompts') res = await adminAPI.syncPrompts();
+            if (type === 'structures') res = await adminAPI.syncStructures();
+            if (type === 'configs') res = await adminAPI.syncConfigs();
+
+            if (res.success) {
+                showToast(`同步成功，变更 ${res.data.synced_count} 项`);
+                this.loadCurrentTab();
             }
         } catch (e) {
-            showToast('同步失败', 'error');
+            showToast('同步失败: ' + e.message, 'error');
         }
     }
 
-    openEditModal(key) {
-        const item = this.prompts.find(p => p.key === key);
-        if (!item) return;
+    openEditModal(type, key) {
+        this.editType = type;
+        this.editKey = key;
 
         const modal = new bootstrap.Modal(document.getElementById('editModal'));
         document.getElementById('editKey').value = key;
         document.getElementById('editKeyDisplay').value = key;
-        document.getElementById('editContent').value = item.content;
 
+        const contentInput = document.getElementById('editContent');
+        const helpText = document.getElementById('editHelpText');
+
+        let content = '';
+        if (type === 'prompt') {
+            const item = this.prompts.find(p => p.key === key);
+            content = item ? item.content : '';
+            helpText.innerText = '支持使用 Go Template 语法，例如 {{.Variable}}';
+        } else if (type === 'structure') {
+            const item = this.structures.find(s => s.id === key);
+            content = item ? JSON.stringify(item.structure, null, 2) : '';
+            helpText.innerText = '必须是合法的 JSON 格式';
+        } else if (type === 'config') {
+            const item = this.configs.find(c => c.key === key);
+            content = item ? item.value : '';
+            helpText.innerText = `类型: ${item ? item.type : 'unknown'}`;
+        }
+
+        contentInput.value = content;
         modal.show();
     }
 
     async saveEdit() {
-        const key = document.getElementById('editKey').value;
+        const key = this.editKey;
         const content = document.getElementById('editContent').value;
 
         try {
-            const token = userActions.getToken();
-            const res = await fetch(`/api/v1/admin/prompts/${key}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ content })
-            });
-            const data = await res.json();
-            if (data.success) {
+            let res;
+            if (this.editType === 'prompt') {
+                res = await adminAPI.updatePrompt(key, content);
+            } else if (this.editType === 'structure') {
+                try {
+                    const jsonContent = JSON.parse(content);
+                    res = await adminAPI.updateStructure(key, jsonContent);
+                } catch (e) {
+                    showToast('无效的 JSON 格式', 'error');
+                    return;
+                }
+            } else if (this.editType === 'config') {
+                res = await adminAPI.updateConfig(key, content);
+            }
+
+            if (res && res.success) {
                 showToast('保存成功');
                 const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
                 modal.hide();
-                this.loadPrompts();
+                this.loadCurrentTab();
             } else {
-                showToast(data.message || '保存失败', 'error');
+                showToast('保存失败', 'error');
             }
         } catch (e) {
-            showToast('保存失败', 'error');
+            showToast('保存失败: ' + e.message, 'error');
         }
     }
 }

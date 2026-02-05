@@ -2,6 +2,8 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/xlei/xupu/internal/handlers"
 	"github.com/xlei/xupu/pkg/db"
@@ -55,8 +57,11 @@ func (s *Server) RegisterRoutes(
 	// 同时创建任务处理器
 	taskHandler := handlers.NewTaskHandler()
 
+	fmt.Println("DEBUG: Registering Routes...")
+
 	// 健康检查
 	s.engine.GET("/health", func(c *gin.Context) {
+		fmt.Println("DEBUG: Health check hit")
 		c.JSON(200, gin.H{
 			"status":  "ok",
 			"service": "xupu-api",
@@ -107,6 +112,7 @@ func (s *Server) RegisterRoutes(
 			projects.PUT("/:projectId/chapters/:chapterId", chapterHandler.UpdateChapter)
 			projects.DELETE("/:projectId/chapters/:chapterId", chapterHandler.DeleteChapter)
 			projects.POST("/:projectId/chapters/:chapterId/continue", writerHandler.ContinueChapter)
+			projects.POST("/:projectId/chapters/:chapterId/continue-stream", writerHandler.ContinueChapterStream)
 			projects.GET("/:projectId/chapters/:chapterId/outline", writerHandler.GenerateChapterOutline)
 
 			// 叙事节点管理
@@ -128,6 +134,7 @@ func (s *Server) RegisterRoutes(
 
 			// 角色设定管理
 			projects.POST("/:projectId/characters/gacha", characterHandler.GachaCharacters)
+			projects.GET("/:projectId/characters", characterHandler.ListCharacters)
 
 			// 简介设定管理
 			projects.POST("/:projectId/synopsis/gacha", synopsisHandler.GachaSynopsis)
@@ -192,6 +199,7 @@ func (s *Server) RegisterRoutes(
 			// 系统配置
 			admin.GET("/configs", adminHandler.GetConfigs)
 			admin.PUT("/configs/:key", adminHandler.UpdateConfig)
+			admin.POST("/configs/sync", adminHandler.SyncConfigs)
 
 			// 提示词管理
 			admin.GET("/prompts", adminHandler.GetPrompts)
@@ -202,6 +210,7 @@ func (s *Server) RegisterRoutes(
 			// 结构模板
 			admin.GET("/structures", adminHandler.GetStructures)
 			admin.PUT("/structures/:id", adminHandler.UpdateStructure)
+			admin.POST("/structures/sync", adminHandler.SyncStructures)
 		}
 	}
 }

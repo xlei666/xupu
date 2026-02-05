@@ -283,6 +283,64 @@ export const synopsisAPI = {
     }
 };
 
+/**
+ * 蓝图API
+ */
+export const blueprintAPI = {
+    // 获取蓝图
+    async getBlueprint(id) {
+        return get(`/api/v1/blueprints/${id}`);
+    },
+
+    // 创建蓝图 (生成)
+    async createBlueprint(data) {
+        return post('/api/v1/blueprints', data);
+    },
+
+    // 导出蓝图
+    async exportBlueprint(id) {
+        return get(`/api/v1/blueprints/${id}/export`);
+    }
+};
+
+/**
+ * 管理后台API
+ */
+export const adminAPI = {
+    // === Prompts ===
+    async getPrompts() {
+        return get('/api/v1/admin/prompts');
+    },
+    async updatePrompt(key, content) {
+        return put(`/api/v1/admin/prompts/${key}`, { content });
+    },
+    async syncPrompts() {
+        return post('/api/v1/admin/sync'); // Note: Endpoint is /sync for prompts
+    },
+
+    // === Structures ===
+    async getStructures() {
+        return get('/api/v1/admin/structures');
+    },
+    async updateStructure(id, structure) {
+        return put(`/api/v1/admin/structures/${id}`, { structure });
+    },
+    async syncStructures() {
+        return post('/api/v1/admin/structures/sync');
+    },
+
+    // === Configs ===
+    async getConfigs() {
+        return get('/api/v1/admin/configs');
+    },
+    async updateConfig(key, value) {
+        return put(`/api/v1/admin/configs/${key}`, { value });
+    },
+    async syncConfigs() {
+        return post('/api/v1/admin/configs/sync');
+    }
+};
+
 export default {
     authAPI,
     projectAPI,
@@ -291,5 +349,7 @@ export default {
     worldAPI,
     characterAPI,
     writerAPI,
-    synopsisAPI
+    synopsisAPI,
+    blueprintAPI,
+    adminAPI
 };

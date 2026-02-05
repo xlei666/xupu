@@ -1,6 +1,7 @@
 package llm
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -247,6 +248,107 @@ func (c *Client) sendRequestInternal(req ChatRequest) (string, error) {
 	}
 
 	return string(body), nil
+}
+
+// StreamCallback 定义流式回调函数
+// 返回 false 停止流式传输
+type StreamCallback func(content string) bool
+
+// GenerateStream 流式生成文本
+func (c *Client) GenerateStream(prompt string, systemPrompt string, callback StreamCallback) error {
+	return c.GenerateStreamWithParams(prompt, systemPrompt, 0.7, 2000, callback)
+}
+
+// GenerateStreamWithParams 使用指定参数流式生成文本
+func (c *Client) GenerateStreamWithParams(prompt string, systemPrompt string, temperature float64, maxTokens int, callback StreamCallback) error {
+	messages := []Message{}
+	if systemPrompt != "" {
+		messages = append(messages, Message{Role: "system", Content: systemPrompt})
+	}
+	messages = append(messages, Message{Role: "user", Content: prompt})
+
+	// 为了最小化修改，我们临时构建 map
+	reqMap := map[string]interface{}{
+		"model":       c.Model,
+		"messages":    messages,
+		"temperature": temperature,
+		"max_tokens":  maxTokens,
+		"stream":      true,
+	}
+
+	return c.sendStreamRequest(reqMap, callback)
+}
+
+// sendStreamRequest 发送流式请求
+func (c *Client) sendStreamRequest(reqBody interface{}, callback StreamCallback) error {
+	jsonBody, err := json.Marshal(reqBody)
+	if err != nil {
+		return err
+	}
+
+	httpReq, err := http.NewRequest("POST", c.BaseURL+"/chat/completions", bytes.NewReader(jsonBody))
+	if err != nil {
+		return err
+	}
+
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("Authorization", "Bearer "+c.APIKey)
+	httpReq.Header.Set("Accept", "text/event-stream")
+
+	resp, err := c.httpCli.Do(httpReq)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("API返回错误: %d, %s", resp.StatusCode, string(body))
+	}
+
+	reader := bufio.NewReader(resp.Body)
+	for {
+		line, err := reader.ReadBytes('\n')
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+
+		line = bytes.TrimSpace(line)
+		if !bytes.HasPrefix(line, []byte("data: ")) {
+			continue
+		}
+
+		data := bytes.TrimPrefix(line, []byte("data: "))
+		if string(data) == "[DONE]" {
+			break
+		}
+
+		var chunk struct {
+			Choices []struct {
+				Delta struct {
+					Content string `json:"content"`
+				} `json:"delta"`
+			} `json:"choices"`
+		}
+
+		if err := json.Unmarshal(data, &chunk); err != nil {
+			continue
+		}
+
+		if len(chunk.Choices) > 0 {
+			content := chunk.Choices[0].Delta.Content
+			if content != "" {
+				if !callback(content) {
+					break
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 // extractJSON 从响应中提取JSON

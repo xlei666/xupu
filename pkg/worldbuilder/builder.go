@@ -17,10 +17,10 @@ import (
 // BuildParams 世界构建参数
 type BuildParams struct {
 	// 基本参数
-	Name   string           `json:"name"`   // 世界名称
-	Type   models.WorldType `json:"type"`   // 世界类型
-	Scale  models.WorldScale `json:"scale"`  // 世界规模
-	Style  string           `json:"style"`  // 风格倾向
+	Name  string            `json:"name"`  // 世界名称
+	Type  models.WorldType  `json:"type"`  // 世界类型
+	Scale models.WorldScale `json:"scale"` // 世界规模
+	Style string            `json:"style"` // 风格倾向
 
 	// 哲学参数（阶段1）
 	Theme string `json:"theme"` // 核心主题
@@ -63,9 +63,9 @@ type Stage5Input struct {
 
 // Stage6Input 阶段6输入
 type Stage6Input struct {
-	WorldType       string `json:"world_type"`
+	WorldType        string `json:"world_type"`
 	GeographySummary string `json:"geography_summary"`
-	ValueSystem     string `json:"value_system"`
+	ValueSystem      string `json:"value_system"`
 }
 
 // Stage7Input 阶段7输入
@@ -85,9 +85,9 @@ type Stage5Output struct {
 			Risks       []string `json:"risks"`
 		} `json:"regions"`
 		Resources *struct {
-			Basic      []string `json:"basic"`
-			Strategic  []string `json:"strategic"`
-			Rare       []string `json:"rare"`
+			Basic     []string `json:"basic"`
+			Strategic []string `json:"strategic"`
+			Rare      []string `json:"rare"`
 		} `json:"resources"`
 		Climate *struct {
 			Type     string   `json:"type"`
@@ -127,18 +127,18 @@ type Stage6Output struct {
 	} `json:"civilization"`
 	Society struct {
 		Politics struct {
-			Type           string `json:"type"`
+			Type             string `json:"type"`
 			LegitimacySource string `json:"legitimacy_source"`
-			PowerStructure struct {
+			PowerStructure   struct {
 				Formal []struct {
 					Level  string   `json:"level"`
 					Name   string   `json:"name"`
 					Powers []string `json:"powers"`
 				} `json:"formal"`
 				Actual []struct {
-					Entity         string `json:"entity"`
-					PowerSource    string `json:"power_source"`
-					Relationship  string `json:"relationship"`
+					Entity       string `json:"entity"`
+					PowerSource  string `json:"power_source"`
+					Relationship string `json:"relationship"`
 				} `json:"actual"`
 			} `json:"power_structure"`
 		} `json:"politics"`
@@ -149,9 +149,9 @@ type Stage6Output struct {
 			Obligations []string `json:"obligations"`
 		} `json:"classes"`
 		Economy struct {
-			Type          string   `json:"type"`
-			TradeNetwork  string   `json:"trade_network"`
-			Currency      []string `json:"currency"`
+			Type         string   `json:"type"`
+			TradeNetwork string   `json:"trade_network"`
+			Currency     []string `json:"currency"`
 		} `json:"economy"`
 		Laws []struct {
 			Name        string `json:"name"`
@@ -170,16 +170,16 @@ type Stage6Result struct {
 // Stage7Output 阶段7输出（匹配LLM输出格式）
 type Stage7Output struct {
 	ConsistencyCheck struct {
-		OverallScore    int `json:"overall_score"`
-		Issues          []struct {
+		OverallScore int `json:"overall_score"`
+		Issues       []struct {
 			Aspect     string `json:"aspect"`
 			Issue      string `json:"issue"`
 			Severity   string `json:"severity"`
 			Suggestion string `json:"suggestion"`
 		} `json:"issues"`
-		Strengths       []string `json:"strengths"`
-		Improvements    []string `json:"improvements"`
-		StoryPotential  struct {
+		Strengths      []string `json:"strengths"`
+		Improvements   []string `json:"improvements"`
+		StoryPotential struct {
 			Score                 int      `json:"score"`
 			HighPotentialElements []string `json:"high_potential_elements"`
 			UnderutilizedElements []string `json:"underutilized_elements"`
@@ -189,27 +189,27 @@ type Stage7Output struct {
 
 // Stage1Output 阶段1输出
 type Stage1Output struct {
-	CoreQuestion string                 `json:"core_question"`
-	Derivation  string                 `json:"derivation"`
-	ValueSystem models.ValueSystem     `json:"value_system"`
-	Themes      []models.Theme         `json:"themes"`
+	CoreQuestion string             `json:"core_question"`
+	Derivation   string             `json:"derivation"`
+	ValueSystem  models.ValueSystem `json:"value_system"`
+	Themes       []models.Theme     `json:"themes"`
 }
 
 // Stage2Output 阶段2输出
 type Stage2Output struct {
-	DerivationLogic string                 `json:"derivation_logic"`
-	Cosmology       models.Cosmology       `json:"cosmology"`
-	Metaphysics     models.Metaphysics     `json:"metaphysics"`
+	DerivationLogic string             `json:"derivation_logic"`
+	Cosmology       models.Cosmology   `json:"cosmology"`
+	Metaphysics     models.Metaphysics `json:"metaphysics"`
 }
 
 // Stage3Output 阶段3输出（匹配LLM输出格式）
 type Stage3Output struct {
 	Physics struct {
-		Gravity           string `json:"gravity"`
-		TimeFlow          string `json:"time_flow"`
+		Gravity            string `json:"gravity"`
+		TimeFlow           string `json:"time_flow"`
 		EnergyConservation string `json:"energy_conservation"`
-		Causality         string `json:"causality"`
-		DeathNature       string `json:"death_nature"`
+		Causality          string `json:"causality"`
+		DeathNature        string `json:"death_nature"`
 	} `json:"physics"`
 	Supernatural *struct {
 		Exists     bool     `json:"exists"`
@@ -222,9 +222,9 @@ type Stage3Output struct {
 
 // WorldBuilder 世界设定器
 type WorldBuilder struct {
-	db     db.Database
-	cfg    *config.Config
-	client *llm.Client
+	db      db.Database
+	cfg     *config.Config
+	client  *llm.Client
 	mapping *config.ModuleMapping
 }
 
@@ -262,7 +262,7 @@ func (wb *WorldBuilder) Build(params BuildParams) (*models.WorldSetting, error) 
 	}
 
 	// 阶段1: 哲学基础
-	philosophy, err := wb.GenerateStage1(Stage1Input{
+	philosophy, _, err := wb.GenerateStage1(Stage1Input{
 		WorldType: string(params.Type),
 		Theme:     params.Theme,
 		Style:     params.Style,
@@ -276,9 +276,9 @@ func (wb *WorldBuilder) Build(params BuildParams) (*models.WorldSetting, error) 
 	}
 
 	// 阶段2: 世界观
-	worldview, err := wb.GenerateStage2(Stage2Input{
-		CoreQuestion:  philosophy.CoreQuestion,
-		HighestGood:   philosophy.ValueSystem.HighestGood,
+	worldview, _, err := wb.GenerateStage2(Stage2Input{
+		CoreQuestion: philosophy.CoreQuestion,
+		HighestGood:  philosophy.ValueSystem.HighestGood,
 		UltimateEvil: philosophy.ValueSystem.UltimateEvil,
 	})
 	if err != nil {
@@ -291,7 +291,7 @@ func (wb *WorldBuilder) Build(params BuildParams) (*models.WorldSetting, error) 
 
 	// 阶段3: 法则设定
 	worldviewSummary := fmt.Sprintf("起源:%s 结构:%s", worldview.Cosmology.Origin, worldview.Cosmology.Structure)
-	laws, err := wb.GenerateStage3(Stage3Input{
+	laws, _, err := wb.GenerateStage3(Stage3Input{
 		WorldType: string(params.Type),
 		Worldview: worldviewSummary,
 	})
@@ -310,7 +310,7 @@ func (wb *WorldBuilder) Build(params BuildParams) (*models.WorldSetting, error) 
 		mainConflicts = philosophy.ValueSystem.MoralDilemmas[0].Dilemma
 	}
 
-	storySoil, err := wb.GenerateStage4(Stage4Input{
+	storySoil, _, err := wb.GenerateStage4(Stage4Input{
 		CoreQuestion:  philosophy.CoreQuestion,
 		MainConflicts: mainConflicts,
 		WorldType:     string(params.Type),
@@ -328,7 +328,7 @@ func (wb *WorldBuilder) Build(params BuildParams) (*models.WorldSetting, error) 
 	lawsSummary := fmt.Sprintf("物理:%s 超自然:%v", laws.Physics.Gravity, laws.Supernatural != nil && laws.Supernatural.Exists)
 	civilizationNeeds := fmt.Sprintf("资源需求基于%s类型的世界", params.Type)
 
-	geography, err := wb.GenerateStage5(Stage5Input{
+	geography, _, err := wb.GenerateStage5(Stage5Input{
 		WorldType:         string(params.Type),
 		WorldScale:        string(params.Scale),
 		LawsSummary:       lawsSummary,
@@ -353,10 +353,10 @@ func (wb *WorldBuilder) Build(params BuildParams) (*models.WorldSetting, error) 
 		}())
 	valueSystem := fmt.Sprintf("最高善:%s", philosophy.ValueSystem.HighestGood)
 
-	civResult, err := wb.GenerateStage6(Stage6Input{
-		WorldType:       string(params.Type),
+	civResult, _, err := wb.GenerateStage6(Stage6Input{
+		WorldType:        string(params.Type),
 		GeographySummary: geographySummary,
-		ValueSystem:     valueSystem,
+		ValueSystem:      valueSystem,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("阶段6失败: %w", err)
@@ -370,7 +370,7 @@ func (wb *WorldBuilder) Build(params BuildParams) (*models.WorldSetting, error) 
 	// 阶段7: 一致性检查
 	// 构建世界设定摘要
 	worldSummary := wb.buildWorldSummary(world)
-	report, err := wb.GenerateStage7(Stage7Input{
+	report, _, err := wb.GenerateStage7(Stage7Input{
 		WorldSettingSummary: worldSummary,
 	})
 	if err != nil {
@@ -385,7 +385,7 @@ func (wb *WorldBuilder) Build(params BuildParams) (*models.WorldSetting, error) 
 }
 
 // GenerateStage1 生成阶段1：哲学基础
-func (wb *WorldBuilder) GenerateStage1(input Stage1Input) (*models.Philosophy, error) {
+func (wb *WorldBuilder) GenerateStage1(input Stage1Input) (*models.Philosophy, string, error) {
 	// 准备模板数据
 	data := map[string]interface{}{
 		"WorldType": input.WorldType,
@@ -396,7 +396,7 @@ func (wb *WorldBuilder) GenerateStage1(input Stage1Input) (*models.Philosophy, e
 	// 渲染提示词
 	prompt, err := wb.cfg.GetWorldBuilderStage1(data)
 	if err != nil {
-		return nil, fmt.Errorf("渲染提示词失败: %w", err)
+		return nil, "", fmt.Errorf("渲染提示词失败: %w", err)
 	}
 
 	// 获取系统提示词
@@ -405,7 +405,7 @@ func (wb *WorldBuilder) GenerateStage1(input Stage1Input) (*models.Philosophy, e
 	// 调用LLM（带重试）
 	result, err := wb.callWithRetry(prompt, systemPrompt)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	// 解析输出
@@ -414,24 +414,24 @@ func (wb *WorldBuilder) GenerateStage1(input Stage1Input) (*models.Philosophy, e
 		// 尝试提取JSON
 		extracted := extractJSON(result)
 		if err := json.Unmarshal([]byte(extracted), &output); err != nil {
-			return nil, fmt.Errorf("解析LLM输出失败: %w, 原始内容: %s", err, result[:min(500, len(result))])
+			return nil, "", fmt.Errorf("解析LLM输出失败: %w, 原始内容: %s", err, result[:min(500, len(result))])
 		}
 	}
 
 	// 构建哲学对象
 	philosophy := &models.Philosophy{
 		CoreQuestion: output.CoreQuestion,
-		Derivation:  output.Derivation,
-		ValueSystem: output.ValueSystem,
-		Themes:      output.Themes,
+		Derivation:   output.Derivation,
+		ValueSystem:  output.ValueSystem,
+		Themes:       output.Themes,
 	}
 
-	return philosophy, nil
+	return philosophy, prompt, nil
 }
 
 // GenerateStage1ForWorld 为已有世界生成/重新生成阶段1
 func (wb *WorldBuilder) GenerateStage1ForWorld(worldID string, input Stage1Input) error {
-	philosophy, err := wb.GenerateStage1(input)
+	philosophy, _, err := wb.GenerateStage1(input)
 	if err != nil {
 		return err
 	}
@@ -440,18 +440,18 @@ func (wb *WorldBuilder) GenerateStage1ForWorld(worldID string, input Stage1Input
 }
 
 // GenerateStage2 生成阶段2：世界观
-func (wb *WorldBuilder) GenerateStage2(input Stage2Input) (*models.Worldview, error) {
+func (wb *WorldBuilder) GenerateStage2(input Stage2Input) (*models.Worldview, string, error) {
 	// 准备模板数据
 	data := map[string]interface{}{
-		"CoreQuestion":  input.CoreQuestion,
-		"HighestGood":   input.HighestGood,
+		"CoreQuestion": input.CoreQuestion,
+		"HighestGood":  input.HighestGood,
 		"UltimateEvil": input.UltimateEvil,
 	}
 
 	// 渲染提示词
 	prompt, err := wb.cfg.GetWorldBuilderStage2(data)
 	if err != nil {
-		return nil, fmt.Errorf("渲染提示词失败: %w", err)
+		return nil, "", fmt.Errorf("渲染提示词失败: %w", err)
 	}
 
 	// 获取系统提示词
@@ -460,7 +460,7 @@ func (wb *WorldBuilder) GenerateStage2(input Stage2Input) (*models.Worldview, er
 	// 调用LLM（带重试）
 	result, err := wb.callWithRetry(prompt, systemPrompt)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	// 解析输出
@@ -469,7 +469,7 @@ func (wb *WorldBuilder) GenerateStage2(input Stage2Input) (*models.Worldview, er
 		// 尝试提取JSON
 		extracted := extractJSON(result)
 		if err := json.Unmarshal([]byte(extracted), &output); err != nil {
-			return nil, fmt.Errorf("解析LLM输出失败: %w, 原始内容: %s", err, result[:min(500, len(result))])
+			return nil, "", fmt.Errorf("解析LLM输出失败: %w, 原始内容: %s", err, result[:min(500, len(result))])
 		}
 	}
 
@@ -480,12 +480,12 @@ func (wb *WorldBuilder) GenerateStage2(input Stage2Input) (*models.Worldview, er
 		Metaphysics: output.Metaphysics,
 	}
 
-	return worldview, nil
+	return worldview, prompt, nil
 }
 
 // GenerateStage2ForWorld 为已有世界生成/重新生成阶段2
 func (wb *WorldBuilder) GenerateStage2ForWorld(worldID string, input Stage2Input) error {
-	worldview, err := wb.GenerateStage2(input)
+	worldview, _, err := wb.GenerateStage2(input)
 	if err != nil {
 		return err
 	}
@@ -494,7 +494,7 @@ func (wb *WorldBuilder) GenerateStage2ForWorld(worldID string, input Stage2Input
 }
 
 // GenerateStage3 生成阶段3：法则设定
-func (wb *WorldBuilder) GenerateStage3(input Stage3Input) (*models.Laws, error) {
+func (wb *WorldBuilder) GenerateStage3(input Stage3Input) (*models.Laws, string, error) {
 	// 准备模板数据
 	data := map[string]interface{}{
 		"WorldType": input.WorldType,
@@ -504,7 +504,7 @@ func (wb *WorldBuilder) GenerateStage3(input Stage3Input) (*models.Laws, error) 
 	// 渲染提示词
 	prompt, err := wb.cfg.GetWorldBuilderStage3(data)
 	if err != nil {
-		return nil, fmt.Errorf("渲染提示词失败: %w", err)
+		return nil, "", fmt.Errorf("渲染提示词失败: %w", err)
 	}
 
 	// 获取系统提示词
@@ -513,7 +513,7 @@ func (wb *WorldBuilder) GenerateStage3(input Stage3Input) (*models.Laws, error) 
 	// 调用LLM（带重试）
 	result, err := wb.callWithRetry(prompt, systemPrompt)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	// 解析输出
@@ -522,18 +522,18 @@ func (wb *WorldBuilder) GenerateStage3(input Stage3Input) (*models.Laws, error) 
 		// 尝试提取JSON
 		extracted := extractJSON(result)
 		if err := json.Unmarshal([]byte(extracted), &output); err != nil {
-			return nil, fmt.Errorf("解析LLM输出失败: %w, 原始内容: %s", err, result[:min(500, len(result))])
+			return nil, "", fmt.Errorf("解析LLM输出失败: %w, 原始内容: %s", err, result[:min(500, len(result))])
 		}
 	}
 
 	// 构建法则对象（需要将LLM输出映射到模型结构）
 	laws := &models.Laws{
 		Physics: models.Physics{
-			Gravity:           output.Physics.Gravity,
-			TimeFlow:          output.Physics.TimeFlow,
+			Gravity:            output.Physics.Gravity,
+			TimeFlow:           output.Physics.TimeFlow,
 			EnergyConservation: output.Physics.EnergyConservation,
-			Causality:         output.Physics.Causality,
-			DeathNature:       output.Physics.DeathNature,
+			Causality:          output.Physics.Causality,
+			DeathNature:        output.Physics.DeathNature,
 		},
 	}
 
@@ -566,7 +566,7 @@ func (wb *WorldBuilder) GenerateStage3(input Stage3Input) (*models.Laws, error) 
 			settings.SuperpowerSystem = &models.SuperpowerSystem{
 				Origin: output.Supernatural.Source,
 				Type:   output.Supernatural.Type,
-				Limit:   output.Supernatural.Limitation,
+				Limit:  output.Supernatural.Limitation,
 			}
 		}
 
@@ -577,12 +577,12 @@ func (wb *WorldBuilder) GenerateStage3(input Stage3Input) (*models.Laws, error) 
 		laws.Supernatural = supernatural
 	}
 
-	return laws, nil
+	return laws, prompt, nil
 }
 
 // GenerateStage3ForWorld 为已有世界生成/重新生成阶段3
 func (wb *WorldBuilder) GenerateStage3ForWorld(worldID string, input Stage3Input) error {
-	laws, err := wb.GenerateStage3(input)
+	laws, _, err := wb.GenerateStage3(input)
 	if err != nil {
 		return err
 	}
@@ -591,7 +591,7 @@ func (wb *WorldBuilder) GenerateStage3ForWorld(worldID string, input Stage3Input
 }
 
 // GenerateStage4 生成阶段4：故事土壤
-func (wb *WorldBuilder) GenerateStage4(input Stage4Input) (*models.StorySoil, error) {
+func (wb *WorldBuilder) GenerateStage4(input Stage4Input) (*models.StorySoil, string, error) {
 	// 准备模板数据
 	data := map[string]interface{}{
 		"CoreQuestion":  input.CoreQuestion,
@@ -602,7 +602,7 @@ func (wb *WorldBuilder) GenerateStage4(input Stage4Input) (*models.StorySoil, er
 	// 渲染提示词
 	prompt, err := wb.cfg.GetWorldBuilderStage4(data)
 	if err != nil {
-		return nil, fmt.Errorf("渲染提示词失败: %w", err)
+		return nil, "", fmt.Errorf("渲染提示词失败: %w", err)
 	}
 
 	// 获取系统提示词
@@ -611,7 +611,7 @@ func (wb *WorldBuilder) GenerateStage4(input Stage4Input) (*models.StorySoil, er
 	// 调用LLM（带重试）
 	result, err := wb.callWithRetry(prompt, systemPrompt)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	// 解析输出
@@ -620,16 +620,16 @@ func (wb *WorldBuilder) GenerateStage4(input Stage4Input) (*models.StorySoil, er
 		// 尝试提取JSON
 		extracted := extractJSON(result)
 		if err := json.Unmarshal([]byte(extracted), &output); err != nil {
-			return nil, fmt.Errorf("解析LLM输出失败: %w, 原始内容: %s", err, result[:min(500, len(result))])
+			return nil, "", fmt.Errorf("解析LLM输出失败: %w, 原始内容: %s", err, result[:min(500, len(result))])
 		}
 	}
 
-	return &output, nil
+	return &output, prompt, nil
 }
 
 // GenerateStage4ForWorld 为已有世界生成/重新生成阶段4
 func (wb *WorldBuilder) GenerateStage4ForWorld(worldID string, input Stage4Input) error {
-	storySoil, err := wb.GenerateStage4(input)
+	storySoil, _, err := wb.GenerateStage4(input)
 	if err != nil {
 		return err
 	}
@@ -638,7 +638,7 @@ func (wb *WorldBuilder) GenerateStage4ForWorld(worldID string, input Stage4Input
 }
 
 // GenerateStage5 生成阶段5：地理环境
-func (wb *WorldBuilder) GenerateStage5(input Stage5Input) (*models.Geography, error) {
+func (wb *WorldBuilder) GenerateStage5(input Stage5Input) (*models.Geography, string, error) {
 	// 准备模板数据
 	data := map[string]interface{}{
 		"WorldType":         input.WorldType,
@@ -657,7 +657,7 @@ func (wb *WorldBuilder) GenerateStage5(input Stage5Input) (*models.Geography, er
 		// 渲染提示词
 		prompt, err = wb.cfg.GetWorldBuilderStage5(data)
 		if err != nil {
-			return nil, fmt.Errorf("渲染提示词失败: %w", err)
+			return nil, "", fmt.Errorf("渲染提示词失败: %w", err)
 		}
 	}
 
@@ -667,7 +667,7 @@ func (wb *WorldBuilder) GenerateStage5(input Stage5Input) (*models.Geography, er
 	// 调用LLM（带重试）
 	result, err := wb.callWithRetry(prompt, systemPrompt)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	// 解析输出
@@ -676,7 +676,7 @@ func (wb *WorldBuilder) GenerateStage5(input Stage5Input) (*models.Geography, er
 		// 尝试提取JSON
 		extracted := extractJSON(result)
 		if err := json.Unmarshal([]byte(extracted), &output); err != nil {
-			return nil, fmt.Errorf("解析LLM输出失败: %w, 原始内容: %s", err, result[:min(500, len(result))])
+			return nil, "", fmt.Errorf("解析LLM输出失败: %w, 原始内容: %s", err, result[:min(500, len(result))])
 		}
 	}
 
@@ -715,12 +715,12 @@ func (wb *WorldBuilder) GenerateStage5(input Stage5Input) (*models.Geography, er
 		}
 	}
 
-	return geography, nil
+	return geography, prompt, nil
 }
 
 // GenerateStage5ForWorld 为已有世界生成/重新生成阶段5
 func (wb *WorldBuilder) GenerateStage5ForWorld(worldID string, input Stage5Input) error {
-	geography, err := wb.GenerateStage5(input)
+	geography, _, err := wb.GenerateStage5(input)
 	if err != nil {
 		return err
 	}
@@ -808,18 +808,18 @@ func (wb *WorldBuilder) buildHistoricalGeographyPrompt(data map[string]interface
 }
 
 // GenerateStage6 生成阶段6：文明社会
-func (wb *WorldBuilder) GenerateStage6(input Stage6Input) (*Stage6Result, error) {
+func (wb *WorldBuilder) GenerateStage6(input Stage6Input) (*Stage6Result, string, error) {
 	// 准备模板数据
 	data := map[string]interface{}{
-		"WorldType":       input.WorldType,
+		"WorldType":        input.WorldType,
 		"GeographySummary": input.GeographySummary,
-		"ValueSystem":     input.ValueSystem,
+		"ValueSystem":      input.ValueSystem,
 	}
 
 	// 渲染提示词
 	prompt, err := wb.cfg.GetWorldBuilderStage6(data)
 	if err != nil {
-		return nil, fmt.Errorf("渲染提示词失败: %w", err)
+		return nil, "", fmt.Errorf("渲染提示词失败: %w", err)
 	}
 
 	// 获取系统提示词
@@ -828,7 +828,7 @@ func (wb *WorldBuilder) GenerateStage6(input Stage6Input) (*Stage6Result, error)
 	// 调用LLM（带重试）
 	result, err := wb.callWithRetry(prompt, systemPrompt)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	// 解析输出
@@ -837,7 +837,7 @@ func (wb *WorldBuilder) GenerateStage6(input Stage6Input) (*Stage6Result, error)
 		// 尝试提取JSON
 		extracted := extractJSON(result)
 		if err := json.Unmarshal([]byte(extracted), &output); err != nil {
-			return nil, fmt.Errorf("解析LLM输出失败: %w, 原始内容: %s", err, result[:min(500, len(result))])
+			return nil, "", fmt.Errorf("解析LLM输出失败: %w, 原始内容: %s", err, result[:min(500, len(result))])
 		}
 	}
 
@@ -886,8 +886,8 @@ func (wb *WorldBuilder) GenerateStage6(input Stage6Input) (*Stage6Result, error)
 
 	// 构建社会对象
 	powerStructure := &models.PowerStructure{
-		Formal:          make([]models.PowerLevel, len(output.Society.Politics.PowerStructure.Formal)),
-		Actual:          make([]models.PowerHolder, len(output.Society.Politics.PowerStructure.Actual)),
+		Formal:            make([]models.PowerLevel, len(output.Society.Politics.PowerStructure.Formal)),
+		Actual:            make([]models.PowerHolder, len(output.Society.Politics.PowerStructure.Actual)),
 		ChecksAndBalances: "",
 	}
 
@@ -903,9 +903,9 @@ func (wb *WorldBuilder) GenerateStage6(input Stage6Input) (*Stage6Result, error)
 	// 映射实际掌权者
 	for i, p := range output.Society.Politics.PowerStructure.Actual {
 		powerStructure.Actual[i] = models.PowerHolder{
-			Entity:        p.Entity,
-			PowerSource:   p.PowerSource,
-			Relationship:  p.Relationship,
+			Entity:       p.Entity,
+			PowerSource:  p.PowerSource,
+			Relationship: p.Relationship,
 		}
 	}
 
@@ -947,12 +947,12 @@ func (wb *WorldBuilder) GenerateStage6(input Stage6Input) (*Stage6Result, error)
 	return &Stage6Result{
 		Civilization: civilization,
 		Society:      society,
-	}, nil
+	}, prompt, nil
 }
 
 // GenerateStage6ForWorld 为已有世界生成/重新生成阶段6
 func (wb *WorldBuilder) GenerateStage6ForWorld(worldID string, input Stage6Input) error {
-	result, err := wb.GenerateStage6(input)
+	result, _, err := wb.GenerateStage6(input)
 	if err != nil {
 		return err
 	}
@@ -967,7 +967,7 @@ func (wb *WorldBuilder) GenerateStage6ForWorld(worldID string, input Stage6Input
 }
 
 // GenerateStage7 生成阶段7：一致性检查
-func (wb *WorldBuilder) GenerateStage7(input Stage7Input) (*models.ConsistencyReport, error) {
+func (wb *WorldBuilder) GenerateStage7(input Stage7Input) (*models.ConsistencyReport, string, error) {
 	// 准备模板数据
 	data := map[string]interface{}{
 		"WorldSettingSummary": input.WorldSettingSummary,
@@ -976,7 +976,7 @@ func (wb *WorldBuilder) GenerateStage7(input Stage7Input) (*models.ConsistencyRe
 	// 渲染提示词
 	prompt, err := wb.cfg.GetWorldBuilderStage7(data)
 	if err != nil {
-		return nil, fmt.Errorf("渲染提示词失败: %w", err)
+		return nil, "", fmt.Errorf("渲染提示词失败: %w", err)
 	}
 
 	// 获取系统提示词
@@ -985,7 +985,7 @@ func (wb *WorldBuilder) GenerateStage7(input Stage7Input) (*models.ConsistencyRe
 	// 调用LLM（带重试）
 	result, err := wb.callWithRetry(prompt, systemPrompt)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	// 解析输出
@@ -994,7 +994,7 @@ func (wb *WorldBuilder) GenerateStage7(input Stage7Input) (*models.ConsistencyRe
 		// 尝试提取JSON
 		extracted := extractJSON(result)
 		if err := json.Unmarshal([]byte(extracted), &output); err != nil {
-			return nil, fmt.Errorf("解析LLM输出失败: %w, 原始内容: %s", err, result[:min(500, len(result))])
+			return nil, "", fmt.Errorf("解析LLM输出失败: %w, 原始内容: %s", err, result[:min(500, len(result))])
 		}
 	}
 
@@ -1021,15 +1021,15 @@ func (wb *WorldBuilder) GenerateStage7(input Stage7Input) (*models.ConsistencyRe
 		}
 	}
 
-	return report, nil
+	return report, prompt, nil
 }
 
 // GenerateStage7ForWorld 为已有世界生成/重新生成阶段7
 // 注意：阶段7是检查阶段，返回报告但不修改世界设定
-func (wb *WorldBuilder) GenerateStage7ForWorld(worldID string) (*models.ConsistencyReport, error) {
+func (wb *WorldBuilder) GenerateStage7ForWorld(worldID string) (*models.ConsistencyReport, string, error) {
 	world, err := wb.db.GetWorld(worldID)
 	if err != nil {
-		return nil, fmt.Errorf("获取世界失败: %w", err)
+		return nil, "", fmt.Errorf("获取世界失败: %w", err)
 	}
 
 	// 构建世界设定摘要

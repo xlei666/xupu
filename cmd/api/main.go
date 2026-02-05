@@ -87,18 +87,15 @@ func main() {
 	// 注册路由
 	server.RegisterRoutes(projectHandler, worldHandler, narrativeHandler, exportHandler, authHandler, chapterHandler, narrativeNodeHandler, worldSettingHandler, characterHandler, synopsisHandler, writerHandler, externalRankHandler, adminHandler)
 
-	// 配置静态文件服务（从文件系统加载，禁用JS缓存便于开发）
-	server.Engine().Use(func(c *gin.Context) {
-		if len(c.Request.URL.Path) > 3 && c.Request.URL.Path[len(c.Request.URL.Path)-3:] == ".js" {
-			c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
-			c.Header("Pragma", "no-cache")
-			c.Header("Expires", "0")
-		}
-		c.Next()
-	})
+	// 配置静态文件服务
 	server.Engine().Static("/static", "./static")
 	// Allow accessing the test page from root for convenience
 	server.Engine().StaticFile("/fanqie_test.html", "./static/fanqie_test.html")
+
+	// Explicitly handle root path to serve index.html
+	server.Engine().GET("/", func(c *gin.Context) {
+		c.File("./static/index.html")
+	})
 
 	// SPA路由支持 - 所有未匹配的路由返回index.html
 	server.Engine().NoRoute(func(c *gin.Context) {
@@ -116,7 +113,7 @@ func main() {
 	addr := ":" + port
 
 	// 启动服务器
-	log.Printf("Starting Xupu API server on %s", addr)
+	log.Printf("Starting Xupu API server on %s (WITH ADMIN SUPPORT)", addr)
 	log.Printf("Static files served from ./static")
 
 	srv := &http.Server{

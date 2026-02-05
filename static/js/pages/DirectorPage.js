@@ -461,14 +461,13 @@ export default class DirectorPage extends BaseComponent {
         this.$('#settingViewArea').style.display = 'none';
 
         const outputEl = this.$('#settingOutput');
-        outputEl.innerHTML = '<span class="stream-cursor"></span>';
+        outputEl.innerHTML = '<div class="progress-info">正在初始化连接...</div>';
         outputEl.classList.add('generating');
         this.generatedSettingContent = '';
 
-        this.log('正在调用AI生成世界设定...');
+        this.log('正在调用AI生成世界设定(流式)...');
 
         try {
-            // Using POST /api/v1/projects/:id/world-gacha
             const response = await this.fetchWithAuth(`/projects/${this.projectId}/world-gacha`, {
                 method: 'POST',
                 body: {
@@ -482,26 +481,69 @@ export default class DirectorPage extends BaseComponent {
 
             if (!response.ok) throw new Error(`API Error: ${response.status}`);
 
-            const data = await response.json();
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let finalData = null;
 
-            if (data.data && data.data.stages) {
-                const s = data.data.stages;
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('event:')) {
+                        this.currentEvent = line.substring(6).trim();
+                    } else if (line.startsWith('data:')) {
+                        const dataStr = line.substring(5).trim();
+                        if (!dataStr) continue;
+
+                        try {
+                            const data = JSON.parse(dataStr);
+
+                            if (this.currentEvent === 'progress') {
+                                // Update progress UI
+                                outputEl.innerHTML = `
+                                    <div class="progress-container" style="text-align: center; padding: 20px;">
+                                        <div style="margin-bottom: 10px; font-weight: bold;">${data.message}</div>
+                                        <div class="progress-bar-bg" style="background: #eee; height: 10px; border-radius: 5px; overflow: hidden;">
+                                            <div class="progress-bar-fill" style="background: var(--primary); width: ${data.percent}%; height: 100%; transition: width 0.3s;"></div>
+                                        </div>
+                                    </div>
+                                `;
+                            } else if (this.currentEvent === 'error') {
+                                throw new Error(data.message);
+                            } else if (this.currentEvent === 'result') {
+                                finalData = typeof data === 'string' ? JSON.parse(data) : data; // Sometimes double encoded
+                            }
+                        } catch (e) {
+                            console.error("Parse error", e);
+                        }
+                    }
+                }
+            }
+
+            if (finalData && finalData.data) {
+                const s = finalData.data.stages;
                 let text = '';
                 if (s.philosophy) text += `【哲学与价值观】\n${JSON.stringify(s.philosophy, null, 2)}\n\n`;
                 if (s.worldview) text += `【世界观】\n${JSON.stringify(s.worldview, null, 2)}\n\n`;
-                if (s.laws) text += `【法则】\n${JSON.stringify(s.laws, null, 2)}`;
+                if (s.laws) text += `【法则】\n${JSON.stringify(s.laws, null, 2)}\n\n`;
+                if (s.geography) text += `【地理】\n共${s.geography.regions ? s.geography.regions.length : 0}个区域\n\n`;
+                if (s.civilization) text += `【文明】\n共${s.civilization.races ? s.civilization.races.length : 0}个种族\n\n`;
 
                 this.generatedSettingContent = text;
-                this.currentSettingId = data.data.world_id; // Capture WorldID
+                this.currentSettingId = finalData.data.world_id;
                 outputEl.innerHTML = `<pre>${text}</pre>`;
+                this.log('世界设定生成完成');
             } else {
-                this.generatedSettingContent = "生成完成，但返回格式未知。请查看控制台。";
-                outputEl.innerHTML = this.generatedSettingContent;
-                console.log(data);
+                if (!outputEl.innerHTML.includes('pre')) {
+                    outputEl.innerHTML += '<div style="color:orange">流已结束，但未收到完整结果</div>';
+                }
             }
 
             outputEl.classList.remove('generating');
-            this.log('世界设定生成完成');
 
         } catch (err) {
             this.log('错误: ' + err.message);
@@ -755,12 +797,29 @@ export default class DirectorPage extends BaseComponent {
         if (typeof index !== 'number') return;
         const ch = this.chapters[index];
 
-        this.log('正在AI写作...');
+        this.log('正在AI写作(流式)...');
         this.$('#writeBtn').disabled = true;
         this.$('#writeBtn').textContent = '写作中...';
 
+        const contentBody = this.$('#contentBody');
+        // 如果是新生成（content为空），则清空；如果是继续生成，则保留
+        // 这里简化逻辑，如果是第一次写，清空
+        if (!ch.content) {
+            contentBody.innerHTML = '';
+        } else {
+            // 换行
+            contentBody.innerHTML += '<br><br>';
+        }
+
+        // 创建光标元素
+        const cursorValues = document.createElement('span');
+        cursorValues.className = 'stream-cursor';
+        contentBody.appendChild(cursorValues);
+
+        let accumulatedText = "";
+
         try {
-            const res = await this.fetchWithAuth(`/projects/${this.projectId}/chapters/${ch.id}/continue`, {
+            const response = await this.fetchWithAuth(`/projects/${this.projectId}/chapters/${ch.id}/continue-stream`, {
                 method: 'POST',
                 body: {
                     instructions: "继续根据细纲写作",
@@ -768,16 +827,54 @@ export default class DirectorPage extends BaseComponent {
                 }
             });
 
-            const data = await res.json();
-            if (data.data && data.data.chapter) {
-                // Update local chapter content
-                this.chapters[index] = data.data.chapter;
-                this.selectChapter(index); // Reload view
-                this.log('写作完成');
+            if (!response.ok) throw new Error(`API Error: ${response.status}`);
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const dataStr = line.slice(6);
+                        if (dataStr === '[DONE]') break;
+
+                        try {
+                            const data = JSON.parse(dataStr);
+                            if (data.content) {
+                                accumulatedText += data.content;
+                                // 简单的HTML处理：换行转<br>
+                                const htmlContent = data.content.replace(/\n/g, '<br>');
+                                cursorValues.insertAdjacentHTML('beforebegin', htmlContent);
+                                // 滚动到底部
+                                contentBody.scrollTop = contentBody.scrollHeight;
+                            }
+                            if (data.error) {
+                                throw new Error(data.error);
+                            }
+                        } catch (e) {
+                            // ignore parse error for partial chunks
+                        }
+                    }
+                }
             }
+
+            // remove cursor
+            cursorValues.remove();
+
+            // 更新本地章节数据
+            this.chapters[index].content = (this.chapters[index].content || '') + accumulatedText;
+            this.log('写作完成');
+
         } catch (e) {
             this.log('写作失败: ' + e.message);
             showToast('写作失败', 'error');
+            cursorValues.remove();
         } finally {
             this.$('#writeBtn').disabled = false;
             this.$('#writeBtn').textContent = '继续写作';

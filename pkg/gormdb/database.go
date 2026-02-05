@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	db *gorm.DB
+	db   *gorm.DB
 	once sync.Once
 )
 
@@ -56,6 +56,9 @@ func initDB() (*gorm.DB, error) {
 		&models.User{},
 		&models.AuthToken{},
 		&models.Chapter{}, // 章节表
+		&models.SysConfig{},
+		&models.PromptTemplate{},
+		&models.NarrativeTemplate{},
 	); err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}

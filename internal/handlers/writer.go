@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -136,6 +137,137 @@ func (h *WriterHandler) ContinueChapter(c *gin.Context) {
 			"generated_length": utf8.RuneCountInString(generatedText),
 		},
 	}))
+}
+
+// ContinueChapterStream 流式AI继续章节内容
+// @Summary AI继续章节内容(流式)
+// @Description 基于当前章节内容、世界设定和角色信息，使用AI继续生成章节内容，流式返回
+// @Tags writer
+// @Accept json
+// @Produce text/event-stream
+// @Param project_id path string true "项目ID"
+// @Param chapter_id path string true "章节ID"
+// @Param request body ContinueChapterRequest true "继续参数"
+// @Success 200 {string} string "stream data"
+// @Router /api/v1/projects/{project_id}/chapters/{chapter_id}/continue-stream [post]
+func (h *WriterHandler) ContinueChapterStream(c *gin.Context) {
+	projectID := c.Param("projectId")
+	chapterID := c.Param("chapterId")
+
+	// 检查项目
+	project, err := h.db.GetProject(projectID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, errorResponse("NOT_FOUND", "项目不存在", ""))
+		return
+	}
+
+	// 获取章节
+	chapter, err := h.db.GetChapter(chapterID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, errorResponse("NOT_FOUND", "章节不存在", ""))
+		return
+	}
+
+	if chapter.ProjectID != projectID {
+		c.JSON(http.StatusNotFound, errorResponse("NOT_FOUND", "章节不存在", ""))
+		return
+	}
+
+	var req ContinueChapterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		req.Length = "medium"
+		req.Style = "balanced"
+		req.IncludeDialogue = true
+		req.IncludeAction = true
+		req.IncludeDescription = true
+		req.ContinueCount = 1
+	}
+
+	// 获取相关数据
+	worldSettings, err := h.db.GetWorld(project.WorldID)
+	if err != nil {
+		worldSettings = &models.WorldSetting{ID: project.WorldID}
+	}
+	characters := h.db.ListCharactersByWorld(project.WorldID)
+	blueprint, _ := h.db.GetNarrativeBlueprint(projectID)
+
+	// 设置SSE Header
+	c.Header("Content-Type", "text/event-stream")
+	c.Header("Cache-Control", "no-cache")
+	c.Header("Connection", "keep-alive")
+	c.Header("Transfer-Encoding", "chunked")
+
+	// 准备回调
+	var fullContent strings.Builder
+
+	err = h.generateContinuationStream(project, chapter, worldSettings, characters, blueprint, req, func(content string) bool {
+		// 检查客户端是否断开
+		select {
+		case <-c.Request.Context().Done():
+			return false
+		default:
+		}
+
+		fullContent.WriteString(content)
+
+		// 构造SSE消息
+		// data: {"content": "..."}
+		msg := gin.H{"content": content}
+		msgBytes, _ := json.Marshal(msg)
+
+		fmt.Fprintf(c.Writer, "data: %s\n\n", msgBytes)
+		c.Writer.Flush()
+		return true
+	})
+
+	if err != nil {
+		// 如果只写了一部分，可能没法完美报错，但SSE通常在流中断前发送error event
+		errMsg := gin.H{"error": err.Error()}
+		errBytes, _ := json.Marshal(errMsg)
+		fmt.Fprintf(c.Writer, "data: %s\n\n", errBytes)
+		c.Writer.Flush()
+		return
+	}
+
+	// 发送结束标记
+	fmt.Fprintf(c.Writer, "data: [DONE]\n\n")
+	c.Writer.Flush()
+
+	// 保存到数据库
+	generatedText := fullContent.String()
+	// 清理可能的markdown标记（虽然流式传输可能已经发出去了，但保存时清理一下）
+	// 注意：流式传输给前端的是原始内容，前端自己处理展示。保存到数据库的最好也是干净的。
+	// 这里简单清理一下首尾空白
+	// generatedText = strings.TrimSpace(generatedText)
+	// (流式可能导致Trim破坏格式，暂时不Trim或者只Trim首部)
+
+	newContent := chapter.Content + generatedText
+	chapter.Content = newContent
+	chapter.WordCount = utf8.RuneCountInString(newContent)
+	chapter.AIWordCount += utf8.RuneCountInString(generatedText)
+
+	h.db.SaveChapter(chapter)
+}
+
+// generateContinuationStream 流式生成
+func (h *WriterHandler) generateContinuationStream(
+	project *models.Project,
+	chapter *models.Chapter,
+	worldSettings *models.WorldSetting,
+	characters []*models.Character,
+	blueprint *models.NarrativeBlueprint,
+	req ContinueChapterRequest,
+	callback llm.StreamCallback,
+) error {
+	client, _, err := llm.NewClientForModule("writer_scene")
+	if err != nil {
+		return fmt.Errorf("创建LLM客户端失败: %w", err)
+	}
+
+	prompt := h.buildContinuationPrompt(project, chapter, worldSettings, characters, blueprint, req)
+	systemPrompt := h.buildWriterSystemPrompt(req)
+
+	return client.GenerateStream(prompt, systemPrompt, callback)
 }
 
 // generateContinuation 生成继续内容

@@ -178,7 +178,26 @@ func (h *WorldSettingHandler) GetWorldStages(c *gin.Context) {
 	// 获取世界设定
 	world, err := h.db.GetWorld(project.WorldID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, errorResponse("NOT_FOUND", "世界设定不存在", ""))
+		// 如果找不到引用的世界（可能是数据不一致），不返回404，而是返回空数据
+		// 这样前端可以显示"未设定"状态，而不是报错
+		fmt.Printf("[WARN] Project %s references missing world %s\n", project.ID, project.WorldID)
+
+		// 清除错误的引用
+		project.WorldID = ""
+		h.db.SaveProject(project)
+
+		c.JSON(http.StatusOK, successResponse(gin.H{
+			"world_id": nil,
+			"stages": gin.H{
+				"philosophy":   nil,
+				"worldview":    nil,
+				"laws":         nil,
+				"geography":    nil,
+				"civilization": nil,
+				"society":      nil,
+				"history":      nil,
+			},
+		}))
 		return
 	}
 
@@ -251,7 +270,7 @@ func (h *WorldSettingHandler) GenerateWorldStage(c *gin.Context) {
 	// 调用 WorldBuilder 生成指定阶段
 	switch stage {
 	case "philosophy":
-		result, err := h.worldBuilder.GenerateStage1(worldbuilder.Stage1Input{
+		result, _, err := h.worldBuilder.GenerateStage1(worldbuilder.Stage1Input{
 			WorldType: string(world.Type),
 			Theme:     req.Context,
 			Style:     world.Style,
@@ -267,7 +286,7 @@ func (h *WorldSettingHandler) GenerateWorldStage(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, errorResponse("MISSING_DEPENDENCY", "缺少前置阶段（哲学）", ""))
 			return
 		}
-		result, err := h.worldBuilder.GenerateStage2(worldbuilder.Stage2Input{
+		result, _, err := h.worldBuilder.GenerateStage2(worldbuilder.Stage2Input{
 			CoreQuestion: world.Philosophy.CoreQuestion,
 			HighestGood:  world.Philosophy.ValueSystem.HighestGood,
 			UltimateEvil: world.Philosophy.ValueSystem.UltimateEvil,
@@ -284,7 +303,7 @@ func (h *WorldSettingHandler) GenerateWorldStage(c *gin.Context) {
 			return
 		}
 		worldviewSummary := fmt.Sprintf("起源:%s 结构:%s", world.Worldview.Cosmology.Origin, world.Worldview.Cosmology.Structure)
-		result, err := h.worldBuilder.GenerateStage3(worldbuilder.Stage3Input{
+		result, _, err := h.worldBuilder.GenerateStage3(worldbuilder.Stage3Input{
 			WorldType: string(world.Type),
 			Worldview: worldviewSummary,
 		})
@@ -303,7 +322,7 @@ func (h *WorldSettingHandler) GenerateWorldStage(c *gin.Context) {
 		if len(world.Philosophy.ValueSystem.MoralDilemmas) > 0 {
 			mainConflicts = world.Philosophy.ValueSystem.MoralDilemmas[0].Dilemma
 		}
-		result, err := h.worldBuilder.GenerateStage4(worldbuilder.Stage4Input{
+		result, _, err := h.worldBuilder.GenerateStage4(worldbuilder.Stage4Input{
 			CoreQuestion:  world.Philosophy.CoreQuestion,
 			MainConflicts: mainConflicts,
 			WorldType:     string(world.Type),
@@ -321,7 +340,7 @@ func (h *WorldSettingHandler) GenerateWorldStage(c *gin.Context) {
 		}
 		lawsSummary := fmt.Sprintf("物理:%s 超自然:%v", world.Laws.Physics.Gravity, world.Laws.Supernatural != nil && world.Laws.Supernatural.Exists)
 		civilizationNeeds := fmt.Sprintf("资源需求基于%s类型的世界", world.Type)
-		result, err := h.worldBuilder.GenerateStage5(worldbuilder.Stage5Input{
+		result, _, err := h.worldBuilder.GenerateStage5(worldbuilder.Stage5Input{
 			WorldType:         string(world.Type),
 			WorldScale:        string(world.Scale),
 			LawsSummary:       lawsSummary,
@@ -346,7 +365,7 @@ func (h *WorldSettingHandler) GenerateWorldStage(c *gin.Context) {
 		}())
 		valueSystem := fmt.Sprintf("最高善:%s", world.Philosophy.ValueSystem.HighestGood)
 
-		result, err := h.worldBuilder.GenerateStage6(worldbuilder.Stage6Input{
+		result, _, err := h.worldBuilder.GenerateStage6(worldbuilder.Stage6Input{
 			WorldType:        string(world.Type),
 			GeographySummary: geographySummary,
 			ValueSystem:      valueSystem,
@@ -477,36 +496,48 @@ func (h *WorldSettingHandler) GachaWorldSettings(c *gin.Context) {
 	for _, stage := range stages {
 		switch stage {
 		case "philosophy":
-			result, err := h.worldBuilder.GenerateStage1(worldbuilder.Stage1Input{
+			var result *models.Philosophy
+			var prompt string
+			result, prompt, err = h.worldBuilder.GenerateStage1(worldbuilder.Stage1Input{
 				WorldType: string(world.Type),
 				Theme:     req.Context,
 				Style:     world.Style,
 			})
 			if err == nil {
 				world.Philosophy = *result
+				c.SSEvent("debug_prompt", gin.H{"stage": stage, "prompt": prompt})
+				c.Writer.Flush()
 			}
 
 		case "worldview":
 			if world.Philosophy.CoreQuestion != "" {
-				result, err := h.worldBuilder.GenerateStage2(worldbuilder.Stage2Input{
+				var result *models.Worldview
+				var prompt string
+				result, prompt, err = h.worldBuilder.GenerateStage2(worldbuilder.Stage2Input{
 					CoreQuestion: world.Philosophy.CoreQuestion,
 					HighestGood:  world.Philosophy.ValueSystem.HighestGood,
 					UltimateEvil: world.Philosophy.ValueSystem.UltimateEvil,
 				})
 				if err == nil {
 					world.Worldview = *result
+					c.SSEvent("debug_prompt", gin.H{"stage": stage, "prompt": prompt})
+					c.Writer.Flush()
 				}
 			}
 
 		case "laws":
 			if world.Worldview.Cosmology.Origin != "" {
 				worldviewSummary := fmt.Sprintf("起源:%s 结构:%s", world.Worldview.Cosmology.Origin, world.Worldview.Cosmology.Structure)
-				result, err := h.worldBuilder.GenerateStage3(worldbuilder.Stage3Input{
+				var result *models.Laws
+				var prompt string
+				result, prompt, err = h.worldBuilder.GenerateStage3(worldbuilder.Stage3Input{
 					WorldType: string(world.Type),
 					Worldview: worldviewSummary,
 				})
 				if err == nil {
 					world.Laws = *result
+					c.SSEvent("debug_prompt", gin.H{"stage": stage, "prompt": prompt})
+					c.Writer.Flush()
 				}
 			}
 
@@ -516,13 +547,17 @@ func (h *WorldSettingHandler) GachaWorldSettings(c *gin.Context) {
 				if len(world.Philosophy.ValueSystem.MoralDilemmas) > 0 {
 					mainConflicts = world.Philosophy.ValueSystem.MoralDilemmas[0].Dilemma
 				}
-				result, err := h.worldBuilder.GenerateStage4(worldbuilder.Stage4Input{
+				var result *models.StorySoil
+				var prompt string
+				result, prompt, err = h.worldBuilder.GenerateStage4(worldbuilder.Stage4Input{
 					CoreQuestion:  world.Philosophy.CoreQuestion,
 					MainConflicts: mainConflicts,
 					WorldType:     string(world.Type),
 				})
 				if err == nil {
 					world.StorySoil = *result
+					c.SSEvent("debug_prompt", gin.H{"stage": stage, "prompt": prompt})
+					c.Writer.Flush()
 				}
 			}
 
@@ -530,7 +565,9 @@ func (h *WorldSettingHandler) GachaWorldSettings(c *gin.Context) {
 			if world.Laws.Physics.Gravity != "" {
 				lawsSummary := fmt.Sprintf("物理:%s 超自然:%v", world.Laws.Physics.Gravity, world.Laws.Supernatural != nil && world.Laws.Supernatural.Exists)
 				civilizationNeeds := fmt.Sprintf("资源需求基于%s类型的世界", world.Type)
-				result, err := h.worldBuilder.GenerateStage5(worldbuilder.Stage5Input{
+				var result *models.Geography
+				var prompt string
+				result, prompt, err = h.worldBuilder.GenerateStage5(worldbuilder.Stage5Input{
 					WorldType:         string(world.Type),
 					WorldScale:        string(world.Scale),
 					LawsSummary:       lawsSummary,
@@ -538,6 +575,8 @@ func (h *WorldSettingHandler) GachaWorldSettings(c *gin.Context) {
 				})
 				if err == nil {
 					world.Geography = *result
+					c.SSEvent("debug_prompt", gin.H{"stage": stage, "prompt": prompt})
+					c.Writer.Flush()
 				}
 			}
 
@@ -551,7 +590,9 @@ func (h *WorldSettingHandler) GachaWorldSettings(c *gin.Context) {
 				}())
 				valueSystem := fmt.Sprintf("最高善:%s", world.Philosophy.ValueSystem.HighestGood)
 
-				result, err := h.worldBuilder.GenerateStage6(worldbuilder.Stage6Input{
+				var result *worldbuilder.Stage6Result
+				var prompt string
+				result, prompt, err = h.worldBuilder.GenerateStage6(worldbuilder.Stage6Input{
 					WorldType:        string(world.Type),
 					GeographySummary: geographySummary,
 					ValueSystem:      valueSystem,
@@ -559,6 +600,8 @@ func (h *WorldSettingHandler) GachaWorldSettings(c *gin.Context) {
 				if err == nil {
 					world.Civilization = *result.Civilization
 					world.Society = *result.Society
+					c.SSEvent("debug_prompt", gin.H{"stage": stage, "prompt": prompt})
+					c.Writer.Flush()
 				}
 			}
 		}

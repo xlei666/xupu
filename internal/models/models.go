@@ -622,8 +622,8 @@ type NarrativeBlueprint struct {
 
 	// 核心内容
 	StoryOutline  StoryOutline        `json:"story_outline" gorm:"type:json"`
-	ChapterPlans  []ChapterPlan       `json:"chapter_plans"`
-	Scenes        []SceneInstruction  `json:"scenes"`
+	ChapterPlans  []ChapterPlan       `json:"chapter_plans" gorm:"type:json;serializer:json"`
+	Scenes        []SceneInstruction  `json:"scenes" gorm:"type:json;serializer:json"`
 	CharacterArcs map[string]*ArcPlan `json:"character_arcs" gorm:"type:json"`
 	ThemePlan     ThemePlan           `json:"theme_plan" gorm:"type:json"`
 }

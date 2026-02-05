@@ -84,10 +84,10 @@ func (h *CharacterHandler) GachaCharacters(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, successResponse(gin.H{
-		"character_ids":          characterIDs,
-		"main_character":         mainCharacter,
+		"character_ids":         characterIDs,
+		"main_character":        mainCharacter,
 		"supporting_characters": supportingCharacters,
-		"message":                fmt.Sprintf("成功生成%d个角色档案", len(characterIDs)),
+		"message":               fmt.Sprintf("成功生成%d个角色档案", len(characterIDs)),
 	}))
 }
 
@@ -125,11 +125,11 @@ func (h *CharacterHandler) generateMainCharacter(project *models.Project, world 
 			},
 			Motivation: models.Motivation{
 				CoreNeed:      "寻找归属感",
-				ExternalGoal: "成为强者",
+				ExternalGoal:  "成为强者",
 				InnerConflict: "渴望力量但害怕失去人性",
 			},
-			Flaw:       "过于冲动",
-			Fear:       "失去重要的人",
+			Flaw: "过于冲动",
+			Fear: "失去重要的人",
 			BeliefSystem: models.BeliefSystem{
 				WorldView:   "世界充满可能",
 				HumanNature: "人性本善",
@@ -155,11 +155,11 @@ func (h *CharacterHandler) generateMainCharacter(project *models.Project, world 
 			},
 			Motivation: models.Motivation{
 				CoreNeed:      "自我实现",
-				ExternalGoal: "探索世界",
+				ExternalGoal:  "探索世界",
 				InnerConflict: "追求自由与责任的平衡",
 			},
-			Flaw:       "过于自信",
-			Fear:       "失败",
+			Flaw: "过于自信",
+			Fear: "失败",
 			BeliefSystem: models.BeliefSystem{
 				WorldView:   "世界充满机遇",
 				HumanNature: "人性复杂",
@@ -210,11 +210,11 @@ func (h *CharacterHandler) generateSupportingCharacter(project *models.Project, 
 		},
 		Motivation: models.Motivation{
 			CoreNeed:      "成就感",
-			ExternalGoal: "帮助主角",
+			ExternalGoal:  "帮助主角",
 			InnerConflict: "责任与个人愿望的冲突",
 		},
-		Flaw:         "固执",
-		Fear:         "被抛弃",
+		Flaw: "固执",
+		Fear: "被抛弃",
 		BeliefSystem: models.BeliefSystem{
 			WorldView:   "世界有秩序",
 			HumanNature: "人性可塑",
@@ -229,4 +229,38 @@ func (h *CharacterHandler) generateSupportingCharacter(project *models.Project, 
 type GachaCharactersRequest struct {
 	ProtagonistName string `json:"protagonist_name"`
 	CharacterCount  int    `json:"character_count"`
+}
+
+// ListCharacters 获取项目角色列表
+// @Summary 获取角色列表
+// @Description 获取项目关联的所有角色
+// @Tags characters
+// @Produce json
+// @Param projectId path string true "项目ID"
+// @Success 200 {object} APIResponse
+// @Router /api/v1/projects/{projectId}/characters [get]
+func (h *CharacterHandler) ListCharacters(c *gin.Context) {
+	projectID := c.Param("projectId")
+
+	// 验证项目存在
+	project, err := h.db.GetProject(projectID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, errorResponse("NOT_FOUND", "项目不存在", ""))
+		return
+	}
+
+	// 如果没有关联世界，返回空列表
+	if project.WorldID == "" {
+		c.JSON(http.StatusOK, successResponse(gin.H{
+			"characters": []models.Character{},
+		}))
+		return
+	}
+
+	// 获取关联世界的角色
+	characters := h.db.ListCharactersByWorld(project.WorldID)
+
+	c.JSON(http.StatusOK, successResponse(gin.H{
+		"characters": characters,
+	}))
 }

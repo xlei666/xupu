@@ -1,8 +1,8 @@
 // 项目详情页面
 
 import BaseComponent from '../components/BaseComponent.js';
-import { projectAPI, chapterAPI } from '../api.js';
-import { projectActions } from '../store.js';
+import { projectAPI, chapterAPI, worldAPI, characterAPI, blueprintAPI } from '../api.js';
+import { projectActions, userActions } from '../store.js';
 import { showToast, formatRelativeTime } from '../utils.js';
 import router from '../router.js';
 
@@ -12,7 +12,54 @@ export default class ProjectDetailPage extends BaseComponent {
         this.projectId = projectId;
         this.project = null;
         this.chapters = [];
+        this.worldSettings = null;
+        this.characters = [];
+        this.blueprint = null;
         this.loading = true;
+        
+        // State for setting generation
+        this.isGenerating = false;
+        this.generatedSettingContent = '';
+        this.API_BASE = '/api/v1';
+    }
+
+    async onMounted() {
+        await this.loadProject();
+    }
+
+    async loadProject() {
+        try {
+            this.loading = true;
+            this.update();
+
+            const response = await projectAPI.getProject(this.projectId);
+            this.project = response?.data?.project || response?.data || null;
+            
+            if (this.project) {
+                projectActions.setCurrentProject(this.project);
+                
+                // Load related data in parallel
+                const promises = [
+                    chapterAPI.getChapters(this.projectId).then(res => this.chapters = res?.data?.chapters || []),
+                    this.project.world_id ? worldAPI.getWorldSettings(this.projectId).then(res => this.worldSettings = res?.data || null) : Promise.resolve(null),
+                    characterAPI.getCharacters(this.projectId).then(res => this.characters = res?.data || []),
+                    // If we have narrative_id, try to fetch blueprint. 
+                    // Note: API might not expose getBlueprint by project_id easily, but let's try assuming narrative_id is blueprint_id
+                    this.project.narrative_id ? blueprintAPI.getBlueprint(this.project.narrative_id).then(res => this.blueprint = res?.data || null).catch(() => null) : Promise.resolve(null)
+                ];
+
+                await Promise.allSettled(promises);
+            }
+
+            this.loading = false;
+            this.update();
+        } catch (error) {
+            console.error('加载项目失败:', error);
+            showToast('加载项目失败', 'error');
+            this.project = null;
+            this.loading = false;
+            this.update();
+        }
     }
 
     render() {
@@ -40,6 +87,8 @@ export default class ProjectDetailPage extends BaseComponent {
             `;
         }
 
+        const isNewWork = !this.worldSettings && (!this.chapters || this.chapters.length === 0);
+
         return `
             <div class="container mt-4">
                 <!-- 项目头部 -->
@@ -55,269 +104,462 @@ export default class ProjectDetailPage extends BaseComponent {
                         <p class="text-muted mb-0">${this.project.description || '暂无描述'}</p>
                     </div>
                     <div>
-                        <button class="btn btn-outline-secondary me-2" id="settingsBtn">
-                            <i class="bi bi-gear me-1"></i>
-                            设置
-                        </button>
-                        <button class="btn btn-primary" id="createChapterBtn">
-                            <i class="bi bi-plus-lg me-1"></i>
-                            新建章节
-                        </button>
+                        <!-- Removed New Chapter button -->
                     </div>
                 </div>
                 
-                <!-- 项目内容 -->
-                <div class="row">
-                    <!-- 左侧：章节列表 -->
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-header bg-white">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-list-ol me-2"></i>
-                                    章节列表
-                                </h5>
-                            </div>
-                            <div class="card-body p-0">
-                                ${this.renderChapterList()}
-                            </div>
+                ${isNewWork ? this.renderNewWorkState() : this.renderProjectContent()}
+            </div>
+            
+            ${this.renderSettingModal()}
+        `;
+    }
+
+    renderNewWorkState() {
+        return `
+            <div class="empty-state py-5 text-center bg-light rounded-3">
+                <i class="bi bi-journal-plus display-1 text-muted"></i>
+                <h3 class="mt-3">开始你的创作之旅</h3>
+                <p class="text-muted mb-4">该项目尚未初始化，请先生成核心设定</p>
+                <button class="btn btn-primary btn-lg px-5" id="startSettingBtn">
+                    <i class="bi bi-magic me-2"></i>
+                    开始设定
+                </button>
+            </div>
+        `;
+    }
+
+    renderProjectContent() {
+        return `
+            <div class="row">
+                <!-- 左侧：章节列表 (保留作为导航) -->
+                <div class="col-md-3">
+                    <div class="card mb-3">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">章节列表</h5>
                         </div>
-                    </div>
-                    
-                    <!-- 右侧：项目信息 -->
-                    <div class="col-md-8">
-                        <div class="card">
-                            <div class="card-header bg-white">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-info-circle me-2"></i>
-                                    项目信息
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row mb-3">
-                                    <div class="col-sm-3 text-muted">创建时间</div>
-                                    <div class="col-sm-9">${formatRelativeTime(this.project.created_at)}</div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-sm-3 text-muted">更新时间</div>
-                                    <div class="col-sm-9">${formatRelativeTime(this.project.updated_at)}</div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-sm-3 text-muted">章节数量</div>
-                                    <div class="col-sm-9">${this.chapters.length} 章</div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-sm-3 text-muted">项目ID</div>
-                                    <div class="col-sm-9"><code>${this.project.id}</code></div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- 快速操作 -->
-                        <div class="card mt-3">
-                            <div class="card-header bg-white">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-lightning me-2"></i>
-                                    快速操作
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-grid gap-2">
-                                    <button class="btn btn-outline-primary" id="worldSettingsBtn">
-                                        <i class="bi bi-globe me-2"></i>
-                                        世界设定
-                                    </button>
-                                    <button class="btn btn-outline-primary" id="charactersBtn">
-                                        <i class="bi bi-people me-2"></i>
-                                        角色管理
-                                    </button>
-                                    <button class="btn btn-outline-primary" id="narrativeBtn">
-                                        <i class="bi bi-diagram-3 me-2"></i>
-                                        叙事规划
-                                    </button>
-                                    <button class="btn btn-outline-primary" id="writerBtn">
-                                        <i class="bi bi-pencil me-2"></i>
-                                        AI写作
-                                    </button>
-                                </div>
-                            </div>
+                        <div class="card-body p-0" style="max-height: 600px; overflow-y: auto;">
+                            ${this.renderChapterList()}
                         </div>
                     </div>
                 </div>
+                
+                <!-- 右侧：主要内容 -->
+                <div class="col-md-9">
+                    <!-- 核心设定 -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">核心设定</h5>
+                            <button class="btn btn-sm btn-outline-primary" id="viewFullSettingBtn">查看详情</button>
+                        </div>
+                        <div class="card-body">
+                            ${this.renderCoreSettingPreview()}
+                        </div>
+                    </div>
+
+                    <!-- 角色列表 -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">角色列表</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            ${this.renderCharacterList()}
+                        </div>
+                    </div>
+
+                    <!-- 叙事蓝图详情 -->
+                    ${this.renderBlueprintSection()}
+
+                    <!-- 作品信息 -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">作品信息</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>章节数量：</strong> ${this.chapters.length} 章</p>
+                                    <p><strong>创建时间：</strong> ${formatRelativeTime(this.project.created_at)}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>总字数：</strong> ${this.calculateTotalWords()} 字</p>
+                                    <p><strong>更新时间：</strong> ${formatRelativeTime(this.project.updated_at)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 下一步操作 -->
+                    <div class="d-grid gap-2 mb-5">
+                        <button class="btn btn-primary btn-lg" id="startNarrativeBtn">
+                            <i class="bi bi-diagram-3 me-2"></i>
+                            开始叙事规划
+                        </button>
+                    </div>
+                </div>
             </div>
-            
-            ${this.renderCreateChapterModal()}
         `;
     }
 
     renderChapterList() {
-        if (this.chapters.length === 0) {
-            return `
-                <div class="empty-state py-4">
-                    <i class="bi bi-file-earmark-text"></i>
-                    <p class="mb-0">还没有章节</p>
-                </div>
-            `;
+        if (!this.chapters || this.chapters.length === 0) {
+            return '<div class="p-3 text-muted text-center">暂无章节</div>';
         }
-
         return `
-            <ul class="chapter-list">
-                ${this.chapters.map((chapter, index) => `
-                    <li class="chapter-item" data-id="${chapter.id}">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>第${index + 1}章</strong>
-                                <span class="ms-2">${chapter.title || '未命名章节'}</span>
-                            </div>
-                            <button class="btn btn-sm btn-outline-danger delete-chapter-btn" data-id="${chapter.id}">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
+            <ul class="list-group list-group-flush">
+                ${this.chapters.map(ch => `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-truncate">第${ch.chapter_num}章 ${ch.title}</span>
+                        <span class="badge bg-secondary rounded-pill">${ch.status === 'completed' ? '完' : '草'}</span>
                     </li>
                 `).join('')}
             </ul>
         `;
     }
 
-    renderCreateChapterModal() {
+    renderCoreSettingPreview() {
+        if (!this.worldSettings) return '<div class="text-muted">暂无设定</div>';
+        
+        // Try to extract some core info
+        const philosophy = this.worldSettings.philosophy?.core_question || '未定义';
+        const worldview = this.worldSettings.worldview?.cosmology?.structure || '未定义';
+        
         return `
-            <div class="modal fade" id="createChapterModal" tabindex="-1">
-                <div class="modal-dialog">
+            <div class="row">
+                <div class="col-md-12">
+                    <p><strong>核心问题：</strong> ${philosophy}</p>
+                    <p><strong>世界结构：</strong> ${worldview}</p>
+                    <p><strong>世界类型：</strong> ${this.worldSettings.type} (${this.worldSettings.scale})</p>
+                </div>
+            </div>
+        `;
+    }
+
+    renderCharacterList() {
+        if (!this.characters || this.characters.length === 0) {
+            return '<div class="p-3 text-muted text-center">暂无角色</div>';
+        }
+        
+        // Show top 5 characters
+        const displayChars = this.characters.slice(0, 5);
+        
+        return `
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>种族</th>
+                        <th>职业</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${displayChars.map(c => `
+                        <tr>
+                            <td>${c.name}</td>
+                            <td>${c.static_profile?.gender || '-'}</td>
+                            <td>${c.static_profile?.race || '-'}</td>
+                            <td>${c.static_profile?.occupation || '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            ${this.characters.length > 5 ? `<div class="p-2 text-center border-top"><small class="text-muted">查看全部 ${this.characters.length} 个角色</small></div>` : ''}
+        `;
+    }
+
+    renderBlueprintSection() {
+        if (!this.blueprint) {
+            return `
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">叙事蓝图详情</h5>
+                    </div>
+                    <div class="card-body text-center text-muted py-4">
+                        <p>尚未生成叙事蓝图</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        const outline = this.blueprint.story_outline || {};
+        const act1 = outline.act1?.setup || '未定义';
+        const type = outline.structure_type || '未定义';
+
+        return `
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">叙事蓝图详情</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>结构类型：</strong> ${type}</p>
+                    <div class="alert alert-light border">
+                        <strong>开篇设定：</strong> ${act1}
+                    </div>
+                    <p class="text-muted"><small>包含 ${this.blueprint.chapter_plans ? this.blueprint.chapter_plans.length : 0} 个章节规划</small></p>
+                </div>
+            </div>
+        `;
+    }
+
+    calculateTotalWords() {
+        return this.chapters.reduce((sum, ch) => sum + (ch.word_count || 0), 0);
+    }
+
+    renderSettingModal() {
+        return `
+            <div class="modal fade" id="settingModal" tabindex="-1" data-bs-backdrop="static">
+                <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">新建章节</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            <h5 class="modal-title">创建核心设定</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" id="closeSettingModalBtn"></button>
                         </div>
-                        <form id="createChapterForm">
-                            <div class="modal-body">
+                        <div class="modal-body">
+                            <div id="settingFormArea">
                                 <div class="mb-3">
-                                    <label for="chapterTitle" class="form-label">章节标题</label>
-                                    <input type="text" class="form-control" id="chapterTitle" name="title" required>
+                                    <label class="form-label">故事核心（一句话亮点）</label>
+                                    <input type="text" class="form-control" id="storyCore" placeholder="例如：穿越者利用现代知识在修仙世界建立科技帝国">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="chapterContent" class="form-label">章节内容</label>
-                                    <textarea class="form-control" id="chapterContent" name="content" rows="5"></textarea>
+                                    <label class="form-label">小说类型</label>
+                                    <input type="text" class="form-control" id="genre" placeholder="例如：玄幻、修仙、都市、科幻">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">补充说明（可选）</label>
+                                    <textarea class="form-control" id="description" rows="3" placeholder="其他你想要的设定细节..."></textarea>
                                 </div>
                             </div>
-                            <div class="modal-footer">
+                            
+                            <div id="settingResultArea" style="display: none;">
+                                <div class="alert alert-info border-0 bg-light">
+                                    <div id="settingOutput" style="white-space: pre-wrap; font-family: monospace; max-height: 400px; overflow-y: auto;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <div id="settingFormActions">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                                <button type="submit" class="btn btn-primary">创建</button>
+                                <button type="button" class="btn btn-primary" id="genSettingBtn">
+                                    <i class="bi bi-stars me-1"></i>生成设定
+                                </button>
                             </div>
-                        </form>
+                            <div id="settingResultActions" style="display: none;">
+                                <button type="button" class="btn btn-outline-secondary" id="regenSettingBtn">重新生成</button>
+                                <button type="button" class="btn btn-primary" id="confirmSettingBtn">确认使用</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
     }
 
-    async onMounted() {
-        await this.loadProject();
-        await this.loadChapters();
-    }
-
     bindEvents() {
-        // 创建章节按钮
-        const createBtn = this.$('#createChapterBtn');
-        if (createBtn) {
-            this.addEventListener(createBtn, 'click', () => this.showCreateChapterModal());
+        // Start Setting Button
+        const startBtn = this.$('#startSettingBtn');
+        if (startBtn) {
+            this.addEventListener(startBtn, 'click', () => this.showSettingModal());
         }
 
-        // 创建章节表单
-        const form = this.$('#createChapterForm');
-        if (form) {
-            this.addEventListener(form, 'submit', (e) => this.handleCreateChapter(e));
+        // Generate Setting Button
+        const genBtn = this.$('#genSettingBtn');
+        if (genBtn) {
+            this.addEventListener(genBtn, 'click', () => this.generateSettings());
         }
 
-        // 快速操作按钮
-        const buttons = {
-            worldSettingsBtn: () => router.navigate(`/project/${this.projectId}/director`),
-            charactersBtn: () => showToast('角色管理功能开发中', 'info'),
-            narrativeBtn: () => router.navigate(`/project/${this.projectId}/director`),
-            writerBtn: () => router.navigate(`/project/${this.projectId}/director`),
-            settingsBtn: () => showToast('项目设置功能开发中', 'info')
-        };
+        // Regenerate Setting Button
+        const regenBtn = this.$('#regenSettingBtn');
+        if (regenBtn) {
+            this.addEventListener(regenBtn, 'click', () => this.resetSettingForm());
+        }
 
-        Object.entries(buttons).forEach(([id, handler]) => {
-            const btn = this.$(`#${id}`);
-            if (btn) {
-                this.addEventListener(btn, 'click', handler);
-            }
-        });
-    }
+        // Confirm Setting Button
+        const confirmBtn = this.$('#confirmSettingBtn');
+        if (confirmBtn) {
+            this.addEventListener(confirmBtn, 'click', () => this.confirmSettings());
+        }
 
-    async loadProject() {
-        try {
-            this.loading = true;
-            this.update();
-
-            const response = await projectAPI.getProject(this.projectId);
-            this.project = response?.data?.project || response?.data || null;
-            projectActions.setCurrentProject(this.project);
-
-            this.loading = false;
-            this.update();
-        } catch (error) {
-            console.error('加载项目失败:', error);
-            showToast('加载项目失败', 'error');
-            this.project = null;
-            this.loading = false;
-            this.update();
+        // Start Narrative Planning Button
+        const narrativeBtn = this.$('#startNarrativeBtn');
+        if (narrativeBtn) {
+            this.addEventListener(narrativeBtn, 'click', () => {
+                router.navigate(`/project/${this.projectId}/director`);
+            });
+        }
+        
+        // View Full Setting
+        const viewSettingBtn = this.$('#viewFullSettingBtn');
+        if (viewSettingBtn) {
+             this.addEventListener(viewSettingBtn, 'click', () => {
+                router.navigate(`/project/${this.projectId}/director`); // Director page shows full settings
+            });
         }
     }
 
-    async loadChapters() {
-        try {
-            const response = await chapterAPI.getChapters(this.projectId);
-            this.chapters = response?.data?.chapters || [];
-            this.update();
-        } catch (error) {
-            console.error('加载章节失败:', error);
-            this.chapters = [];
-        }
-    }
-
-    showCreateChapterModal() {
-        const modal = new bootstrap.Modal(this.$('#createChapterModal'));
+    showSettingModal() {
+        const modal = new bootstrap.Modal(this.$('#settingModal'));
         modal.show();
     }
 
-    async handleCreateChapter(e) {
-        e.preventDefault();
+    resetSettingForm() {
+        this.$('#settingFormArea').style.display = 'block';
+        this.$('#settingResultArea').style.display = 'none';
+        this.$('#settingFormActions').style.display = 'block';
+        this.$('#settingResultActions').style.display = 'none';
+        this.$('#settingOutput').innerHTML = '';
+    }
 
-        const formData = new FormData(e.target);
-        const chapterData = {
-            title: formData.get('title'),
-            content: formData.get('content')
-        };
+    async generateSettings() {
+        const storyCore = this.$('#storyCore').value.trim();
+        const genre = this.$('#genre').value.trim();
+        const description = this.$('#description').value.trim();
 
-        try {
-            const submitBtn = this.$('#createChapterForm button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>创建中...';
-
-            const response = await chapterAPI.createChapter(this.projectId, chapterData);
-            const chapter = response?.data?.chapter || response?.data || response;
-
-            this.chapters.push(chapter);
-            showToast('章节创建成功！', 'success');
-
-            // 关闭模态框
-            const modal = bootstrap.Modal.getInstance(this.$('#createChapterModal'));
-            modal.hide();
-
-            // 重置表单
-            e.target.reset();
-
-            // 刷新列表
-            this.update();
-        } catch (error) {
-            console.error('创建章节失败:', error);
-            showToast(error.message || '创建章节失败', 'error');
-        } finally {
-            const submitBtn = this.$('#createChapterForm button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '创建';
-            }
+        if (!storyCore || !genre) {
+            showToast('请填写故事核心和小说类型', 'warning');
+            return;
         }
+
+        // UI Update
+        this.$('#settingFormArea').style.display = 'none';
+        this.$('#settingResultArea').style.display = 'block';
+        this.$('#settingFormActions').style.display = 'none';
+        this.$('#settingResultActions').style.display = 'none';
+        
+        const outputEl = this.$('#settingOutput');
+        // Initialize structure ONCE
+        outputEl.innerHTML = `
+            <div class="p-4 text-center">
+                <div id="genStatus" class="mb-2 fw-bold">正在初始化AI...</div>
+                <div class="progress" style="height: 10px;">
+                    <div id="genProgress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+            <div id="streamingResult" class="mt-3 text-start border rounded bg-white" style="max-height: 500px; overflow-y: auto; font-family: monospace; display: none;"></div>
+        `;
+        
+        try {
+            const token = userActions.getToken();
+            const response = await fetch(`${this.API_BASE}/projects/${this.projectId}/world-gacha`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    context: `${storyCore}\n${description}`,
+                    settings: {
+                        world_type: genre,
+                        style: "通用"
+                    }
+                })
+            });
+
+            if (!response.ok) throw new Error(`API Error: ${response.status}`);
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let currentEvent = '';
+            let finalData = null;
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('event:')) {
+                        currentEvent = line.substring(6).trim();
+                    } else if (line.startsWith('data:')) {
+                        const dataStr = line.substring(5).trim();
+                        if (!dataStr) continue;
+
+                        try {
+                            const data = JSON.parse(dataStr);
+
+                            if (currentEvent === 'progress') {
+                                const statusEl = document.getElementById('genStatus');
+                                const progressEl = document.getElementById('genProgress');
+                                if (statusEl) statusEl.textContent = data.message || '生成中...';
+                                if (progressEl) progressEl.style.width = (data.percent || 0) + '%';
+                                
+                            } else if (currentEvent === 'stage_data') {
+                                const streamDiv = document.getElementById('streamingResult');
+                                if (streamDiv) {
+                                    streamDiv.style.display = 'block';
+                                    const stageName = data.name || data.stage;
+                                    const content = JSON.stringify(data.content, null, 2);
+                                    
+                                    const newEntry = document.createElement('div');
+                                    newEntry.className = 'p-3 border-bottom';
+                                    newEntry.innerHTML = `
+                                        <h6 class="text-primary fw-bold mb-2">✓ ${stageName} 生成完成</h6>
+                                        <pre class="bg-light p-2 rounded mb-0" style="font-size: 0.85em; white-space: pre-wrap;">${content}</pre>
+                                    `;
+                                    streamDiv.appendChild(newEntry);
+                                    streamDiv.scrollTop = streamDiv.scrollHeight;
+                                }
+                            } else if (currentEvent === 'debug_prompt') {
+                                const streamDiv = document.getElementById('streamingResult');
+                                if (streamDiv) {
+                                    streamDiv.style.display = 'block';
+                                    const stageName = data.stage;
+                                    const prompt = data.prompt;
+                                    
+                                    const newEntry = document.createElement('div');
+                                    newEntry.className = 'p-3 border-bottom bg-light';
+                                    newEntry.innerHTML = `
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="badge bg-secondary">Prompt</span>
+                                            <small class="text-muted">${stageName}</small>
+                                        </div>
+                                        <div class="text-muted" style="font-size: 0.8em; white-space: pre-wrap; border-left: 3px solid #6c757d; padding-left: 10px;">${prompt}</div>
+                                    `;
+                                    streamDiv.appendChild(newEntry);
+                                    streamDiv.scrollTop = streamDiv.scrollHeight;
+                                }
+                            } else if (currentEvent === 'result') {
+                                finalData = typeof data === 'string' ? JSON.parse(data) : data;
+                            } else if (currentEvent === 'error') {
+                                throw new Error(data.message);
+                            }
+                        } catch (e) {
+                            console.error("Parse error", e);
+                        }
+                    }
+                }
+            }
+
+            if (finalData && finalData.data) {
+                const s = finalData.data.stages;
+                let text = '';
+                if (s.philosophy) text += `【哲学与价值观】\n${JSON.stringify(s.philosophy, null, 2)}\n\n`;
+                if (s.worldview) text += `【世界观】\n${JSON.stringify(s.worldview, null, 2)}\n\n`;
+                if (s.laws) text += `【法则】\n${JSON.stringify(s.laws, null, 2)}\n\n`;
+                if (s.geography) text += `【地理】\n共${s.geography.regions ? s.geography.regions.length : 0}个区域\n\n`;
+                
+                outputEl.innerHTML = `<pre>${text}</pre>`;
+                this.$('#settingResultActions').style.display = 'block';
+            } else {
+                 outputEl.innerHTML += '<div class="text-warning mt-3">生成结束，但未收到完整结果，请尝试刷新页面。</div>';
+                 this.$('#settingResultActions').style.display = 'block';
+            }
+
+        } catch (err) {
+            outputEl.innerHTML = `<div class="text-danger p-3">生成失败: ${err.message}</div>`;
+            this.$('#settingResultActions').style.display = 'block';
+        }
+    }
+
+    async confirmSettings() {
+        const modal = bootstrap.Modal.getInstance(this.$('#settingModal'));
+        modal.hide();
+        
+        showToast('核心设定已保存', 'success');
+        
+        // Reload project to get the new world_id and render content
+        await this.loadProject();
     }
 }
